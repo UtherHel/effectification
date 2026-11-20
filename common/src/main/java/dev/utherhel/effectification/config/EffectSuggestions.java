@@ -1,10 +1,9 @@
 package dev.utherhel.effectification.config;
 
 import me.fzzyhmstrs.fzzy_config.util.AllowableStrings;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -28,8 +27,8 @@ public final class EffectSuggestions {
         List<String> effectIds = new ArrayList<>();
         Map<String, List<String>> effectsByName = new LinkedHashMap<>();
         
-        for (StatusEffect effect : Registries.STATUS_EFFECT) {
-            Identifier id = Registries.STATUS_EFFECT.getId(effect);
+        for (MobEffect effect : BuiltInRegistries.MOB_EFFECT) {
+            ResourceLocation id = BuiltInRegistries.MOB_EFFECT.getKey(effect);
             if (id != null) {
                 String fullId = id.toString();
                 String name = id.getPath();

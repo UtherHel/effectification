@@ -9,8 +9,7 @@ import me.fzzyhmstrs.fzzy_config.annotations.Version;
 import me.fzzyhmstrs.fzzy_config.config.Config;
 import me.fzzyhmstrs.fzzy_config.validation.collection.ValidatedList;
 import me.fzzyhmstrs.fzzy_config.validation.misc.ValidatedAny;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.resources.ResourceLocation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +27,7 @@ public class EffectificationConfig extends Config {
     public DebugSection debug = new DebugSection();
     
     public EffectificationConfig() {
-        super(Identifier.of("effectification", "effectification"));
+        super(ResourceLocation.fromNamespaceAndPath("effectification", "effectification"));
         ValidatedAny<EffectMappingEntry> handler = new ValidatedAny<>(new EffectMappingEntry());
         
         this.staticMappings = handler.toList(new ArrayList<>());

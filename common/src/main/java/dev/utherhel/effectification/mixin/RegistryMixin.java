@@ -5,12 +5,6 @@ import dev.utherhel.effectification.EffectUnifier;
 import dev.utherhel.effectification.EffectificationLogger;
 import dev.utherhel.effectification.config.EffectMappingEntry;
 import dev.utherhel.effectification.util.EffectUtils;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.SimpleRegistry;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,18 +14,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 import java.util.Map;
+import net.minecraft.core.Holder;
+import net.minecraft.core.MappedRegistry;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
 
-@Mixin(SimpleRegistry.class)
+@Mixin(MappedRegistry.class)
 public abstract class RegistryMixin<T> {
     
     @Shadow @Final
-    private Map<Identifier, RegistryEntry.Reference<T>> idToEntry;
+    private Map<ResourceLocation, Holder.Reference<T>> byLocation;
     
     @Shadow @Final
-    private Map<RegistryKey<T>, RegistryEntry.Reference<T>> keyToEntry;
+    private Map<ResourceKey<T>, Holder.Reference<T>> byKey;
     
     @Shadow @Final
-    private RegistryKey<? extends Registry<T>> key;
+    private ResourceKey<? extends Registry<T>> key;
     
     @Inject(method = "freeze", at = @At("HEAD"))
     private void injectEffectAliases(CallbackInfoReturnable<Registry<T>> cir) {
@@ -50,7 +50,7 @@ public abstract class RegistryMixin<T> {
     }
     
     private boolean isStatusEffectRegistry() {
-        return key.getValue().toString().equals("minecraft:mob_effect");
+        return key.location().toString().equals("minecraft:mob_effect");
     }
     
     private int[] processAllMappings(EffectUnifier unifier) {
@@ -84,7 +84,7 @@ public abstract class RegistryMixin<T> {
     }
     
     private int[] processSingleMapping(EffectMappingEntry mapping, EffectUnifier unifier) {
-        StatusEffect targetEffect = mapping.getResolvedTargetEffect();
+        MobEffect targetEffect = mapping.getResolvedTargetEffect();
         if (targetEffect == null) {
             EffectificationLogger.warn("[Registry] Target effect not found for mapping: " + 
                 mapping.getSourceEffect() + " -> " + mapping.getTargetEffect());
@@ -97,8 +97,8 @@ public abstract class RegistryMixin<T> {
             return new int[]{0, 1};
         }
         
-        Identifier targetIdentifier = Identifier.of(targetId);
-        RegistryEntry.Reference<T> targetHolder = idToEntry.get(targetIdentifier);
+        ResourceLocation targetIdentifier = ResourceLocation.parse(targetId);
+        Holder.Reference<T> targetHolder = byLocation.get(targetIdentifier);
         
         if (targetHolder == null) {
             EffectificationLogger.warn("[Registry] Target holder not found for: " + targetId);
@@ -108,7 +108,7 @@ public abstract class RegistryMixin<T> {
         return processSourcePattern(mapping.getSourceEffect(), targetHolder, targetId, unifier);
     }
     
-    private int[] processSourcePattern(String sourcePattern, RegistryEntry.Reference<T> targetHolder, 
+    private int[] processSourcePattern(String sourcePattern, Holder.Reference<T> targetHolder, 
                                        String targetId, EffectUnifier unifier) {
         if (!sourcePattern.contains("*")) {
             boolean success = injectSingleAlias(sourcePattern, targetHolder);
@@ -128,10 +128,10 @@ public abstract class RegistryMixin<T> {
         }
     }
     
-    private int injectWildcardAliases(String sourcePattern, RegistryEntry.Reference<T> targetHolder, 
+    private int injectWildcardAliases(String sourcePattern, Holder.Reference<T> targetHolder, 
                                       String targetId, EffectUnifier unifier) {
         int count = 0;
-        for (StatusEffect effect : unifier.getMatchingEffects(sourcePattern)) {
+        for (MobEffect effect : unifier.getMatchingEffects(sourcePattern)) {
             String effectId = EffectUtils.getEffectId(effect);
             if (effectId != null && !effectId.equals(targetId) && injectSingleAlias(effectId, targetHolder)) {
                 count++;
@@ -140,19 +140,19 @@ public abstract class RegistryMixin<T> {
         return count;
     }
     
-    private boolean injectSingleAlias(String sourceId, RegistryEntry.Reference<T> targetHolder) {
+    private boolean injectSingleAlias(String sourceId, Holder.Reference<T> targetHolder) {
         try {
-            Identifier sourceIdentifier = Identifier.of(sourceId);
+            ResourceLocation sourceIdentifier = ResourceLocation.parse(sourceId);
             
-            RegistryEntry.Reference<T> existingHolder = idToEntry.get(sourceIdentifier);
+            Holder.Reference<T> existingHolder = byLocation.get(sourceIdentifier);
             if (existingHolder != null) {
                 return existingHolder == targetHolder;
             }
             
-            idToEntry.put(sourceIdentifier, targetHolder);
+            byLocation.put(sourceIdentifier, targetHolder);
             
-            RegistryKey<T> sourceKey = (RegistryKey<T>) RegistryKey.of(key, sourceIdentifier);
-            keyToEntry.put(sourceKey, targetHolder);
+            ResourceKey<T> sourceKey = (ResourceKey<T>) ResourceKey.create(key, sourceIdentifier);
+            byKey.put(sourceKey, targetHolder);
             
             return true;
         } catch (Exception e) {

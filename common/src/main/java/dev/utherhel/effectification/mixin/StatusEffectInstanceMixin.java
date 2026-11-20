@@ -5,8 +5,8 @@ import dev.utherhel.effectification.EffectUnifier;
 import dev.utherhel.effectification.config.EffectMappingEntry;
 import dev.utherhel.effectification.util.CacheCleanable;
 import dev.utherhel.effectification.util.EffectUtils;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -14,14 +14,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(StatusEffectInstance.class)
+@Mixin(MobEffectInstance.class)
 public abstract class StatusEffectInstanceMixin implements CacheCleanable {
     
     @Unique
     private static final ThreadLocal<Boolean> effectification$isProcessing = ThreadLocal.withInitial(() -> false);
     
     @Unique
-    private StatusEffect effectification$cachedTargetEffect = null;
+    private MobEffect effectification$cachedTargetEffect = null;
     
     @Unique
     private boolean effectification$conversionChecked = false;
@@ -36,13 +36,13 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
     private long effectification$cachedUnifierVersion = -1;
     
     @Shadow
-    public abstract net.minecraft.registry.entry.RegistryEntry<StatusEffect> getEffectType();
+    public abstract net.minecraft.core.Holder<MobEffect> getEffect();
     
     @Shadow
     public abstract int getAmplifier();
     
-    @Inject(method = "getEffectType", at = @At("RETURN"), cancellable = true)
-    private void onGetEffectType(CallbackInfoReturnable<net.minecraft.registry.entry.RegistryEntry<StatusEffect>> cir) {
+    @Inject(method = "getEffect", at = @At("RETURN"), cancellable = true)
+    private void onGetEffectType(CallbackInfoReturnable<net.minecraft.core.Holder<MobEffect>> cir) {
         if (Boolean.TRUE.equals(effectification$isProcessing.get())) {
             return;
         }
@@ -70,20 +70,20 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
     }
     
     @Unique
-    private net.minecraft.registry.entry.RegistryEntry<StatusEffect> effectification$getRegistryEntry(StatusEffect effect) {
-        net.minecraft.registry.Registry<StatusEffect> registry = net.minecraft.registry.Registries.STATUS_EFFECT;
-        return registry.getEntry(effect);
+    private net.minecraft.core.Holder<MobEffect> effectification$getRegistryEntry(MobEffect effect) {
+        net.minecraft.core.Registry<MobEffect> registry = net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT;
+        return registry.wrapAsHolder(effect);
     }
     
     @Unique
-    private void effectification$checkAndCacheConversion(CallbackInfoReturnable<net.minecraft.registry.entry.RegistryEntry<StatusEffect>> cir) {
+    private void effectification$checkAndCacheConversion(CallbackInfoReturnable<net.minecraft.core.Holder<MobEffect>> cir) {
         EffectUnifier unifier = Effectification.getEffectUnifier();
         if (unifier == null) {
             effectification$conversionChecked = true;
             return;
         }
         
-        StatusEffect effect = cir.getReturnValue().value();
+        MobEffect effect = cir.getReturnValue().value();
         effectification$cachedEffectId = EffectUtils.getEffectId(effect);
         if (effectification$cachedEffectId == null) {
             effectification$conversionChecked = true;
@@ -97,7 +97,7 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
         
         EffectMappingEntry mapping = unifier.getMapping(effectification$cachedEffectId);
         if (mapping != null && !mapping.isOnlyVisualChange()) {
-            StatusEffect targetEffect = mapping.getResolvedTargetEffect();
+            MobEffect targetEffect = mapping.getResolvedTargetEffect();
             if (targetEffect != null && targetEffect != effect) {
                 effectification$cachedTargetEffect = targetEffect;
                 effectification$conversionChecked = true;
@@ -147,7 +147,7 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
         }
     }
     
-    @Inject(method = "getTranslationKey", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "getDescriptionId", at = @At("RETURN"), cancellable = true)
     private void onGetTranslationKey(CallbackInfoReturnable<String> cir) {
         if (Boolean.TRUE.equals(effectification$isProcessing.get())) {
             return;
@@ -171,9 +171,9 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
             
             EffectMappingEntry mapping = unifier.getMapping(effectification$cachedEffectId);
             if (mapping != null) {
-                StatusEffect targetEffect = mapping.getResolvedTargetEffect();
-                if (targetEffect != null && targetEffect != this.getEffectType().value()) {
-                    cir.setReturnValue(targetEffect.getTranslationKey());
+                MobEffect targetEffect = mapping.getResolvedTargetEffect();
+                if (targetEffect != null && targetEffect != this.getEffect().value()) {
+                    cir.setReturnValue(targetEffect.getDescriptionId());
                 }
             }
         } finally {

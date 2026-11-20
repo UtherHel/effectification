@@ -6,11 +6,10 @@ import me.fzzyhmstrs.fzzy_config.annotations.Translation;
 import me.fzzyhmstrs.fzzy_config.config.ConfigSection;
 import me.fzzyhmstrs.fzzy_config.util.AllowableStrings;
 import me.fzzyhmstrs.fzzy_config.validation.misc.ValidatedString;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.effect.MobEffect;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,7 @@ public class EffectMappingEntry extends ConfigSection {
     
     private Map<String, Boolean> matchCache;
     
-    private StatusEffect cachedResolvedTargetEffect;
+    private MobEffect cachedResolvedTargetEffect;
     private boolean targetEffectResolved = false;
     
     @Comment("Source effect pattern: *:bleeding, *:bleeding*, modid:effect*, *:bleeding* !*:immunity")
@@ -156,38 +155,38 @@ public class EffectMappingEntry extends ConfigSection {
     }
     
     @Override
-    public MutableText description(String fallback) {
-        MutableText desc = Text.empty();
+    public MutableComponent description(String fallback) {
+        MutableComponent desc = Component.empty();
         
-        desc.append(Text.literal("Source: ").formatted(Formatting.GRAY));
-        desc.append(Text.literal(getSourceEffect()).formatted(Formatting.WHITE));
+        desc.append(Component.literal("Source: ").withStyle(ChatFormatting.GRAY));
+        desc.append(Component.literal(getSourceEffect()).withStyle(ChatFormatting.WHITE));
         desc.append("\n");
         
-        desc.append(Text.literal("Target: ").formatted(Formatting.GRAY));
-        desc.append(Text.literal(getTargetEffect()).formatted(Formatting.WHITE));
+        desc.append(Component.literal("Target: ").withStyle(ChatFormatting.GRAY));
+        desc.append(Component.literal(getTargetEffect()).withStyle(ChatFormatting.WHITE));
         desc.append("\n");
         
-        desc.append(Text.literal("Multiplier: ").formatted(Formatting.GRAY));
-        desc.append(Text.literal(String.valueOf(getAmplifierMultiplier())).formatted(Formatting.WHITE));
+        desc.append(Component.literal("Multiplier: ").withStyle(ChatFormatting.GRAY));
+        desc.append(Component.literal(String.valueOf(getAmplifierMultiplier())).withStyle(ChatFormatting.WHITE));
         desc.append("\n");
         
-        desc.append(Text.literal("Visual Only: ").formatted(Formatting.GRAY));
-        desc.append(Text.literal(String.valueOf(isOnlyVisualChange())).formatted(Formatting.WHITE));
+        desc.append(Component.literal("Visual Only: ").withStyle(ChatFormatting.GRAY));
+        desc.append(Component.literal(String.valueOf(isOnlyVisualChange())).withStyle(ChatFormatting.WHITE));
         desc.append("\n");
         
-        desc.append(Text.literal("Unidirectional: ").formatted(Formatting.GRAY));
-        desc.append(Text.literal(String.valueOf(isUnidirectional())).formatted(Formatting.WHITE));
+        desc.append(Component.literal("Unidirectional: ").withStyle(ChatFormatting.GRAY));
+        desc.append(Component.literal(String.valueOf(isUnidirectional())).withStyle(ChatFormatting.WHITE));
         
         if (getExtraApplyEffectTick() != null && !getExtraApplyEffectTick().isEmpty()) {
             desc.append("\n");
-            desc.append(Text.literal("Extra Tick: ").formatted(Formatting.GRAY));
-            desc.append(Text.literal(getExtraApplyEffectTick()).formatted(Formatting.WHITE));
+            desc.append(Component.literal("Extra Tick: ").withStyle(ChatFormatting.GRAY));
+            desc.append(Component.literal(getExtraApplyEffectTick()).withStyle(ChatFormatting.WHITE));
         }
         
         if (getDiscardEffectTick() != null && !getDiscardEffectTick().isEmpty()) {
             desc.append("\n");
-            desc.append(Text.literal("Discard Tick: ").formatted(Formatting.GRAY));
-            desc.append(Text.literal(getDiscardEffectTick()).formatted(Formatting.WHITE));
+            desc.append(Component.literal("Discard Tick: ").withStyle(ChatFormatting.GRAY));
+            desc.append(Component.literal(getDiscardEffectTick()).withStyle(ChatFormatting.WHITE));
         }
         
         return desc;
@@ -226,7 +225,7 @@ public class EffectMappingEntry extends ConfigSection {
         return cachedTargetEffects;
     }
     
-    public StatusEffect getResolvedTargetEffect() {
+    public MobEffect getResolvedTargetEffect() {
         if (targetEffectResolved) {
             return cachedResolvedTargetEffect;
         }

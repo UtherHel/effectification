@@ -2,14 +2,13 @@ package dev.utherhel.effectification;
 
 import dev.utherhel.effectification.config.EffectMappingEntry;
 import dev.utherhel.effectification.config.EffectificationConfig;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
 
 public class EffectUnifier {
     private final Map<String, EffectMappingEntry> staticSourceToMapping;
@@ -22,7 +21,7 @@ public class EffectUnifier {
     
     private final List<String> discardPatterns;
     private final Map<String, Boolean> discardCache;
-    private final Map<String, List<StatusEffect>> extraEffectCache;
+    private final Map<String, List<MobEffect>> extraEffectCache;
 
     public EffectUnifier(EffectificationConfig config) {
         this.staticSourceToMapping = new HashMap<>();
@@ -71,15 +70,15 @@ public class EffectUnifier {
     }
     
     // Gets all effects matching a wildcard pattern (cached)
-    public List<StatusEffect> getMatchingEffects(String pattern) {
-        List<StatusEffect> cached = extraEffectCache.get(pattern);
+    public List<MobEffect> getMatchingEffects(String pattern) {
+        List<MobEffect> cached = extraEffectCache.get(pattern);
         if (cached != null) {
             return cached;
         }
         
-        List<StatusEffect> matching = new ArrayList<>();
-        for (StatusEffect effect : Registries.STATUS_EFFECT) {
-            Identifier id = Registries.STATUS_EFFECT.getId(effect);
+        List<MobEffect> matching = new ArrayList<>();
+        for (MobEffect effect : BuiltInRegistries.MOB_EFFECT) {
+            ResourceLocation id = BuiltInRegistries.MOB_EFFECT.getKey(effect);
             if (id != null) {
                 String effectId = id.toString();
                 if (matchesPattern(effectId, pattern)) {

@@ -5,10 +5,6 @@ import dev.utherhel.effectification.EffectUnifier;
 import dev.utherhel.effectification.EffectificationLogger;
 import dev.utherhel.effectification.config.EffectMappingEntry;
 import dev.utherhel.effectification.util.EffectUtils;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -21,6 +17,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 
 // Handles unidirectional mode and extra effect ticks
 @Mixin(LivingEntity.class)
@@ -31,22 +31,22 @@ public abstract class LivingEntityMixin {
     @Unique
     private static final ThreadLocal<Boolean> isProcessingTick = ThreadLocal.withInitial(() -> false);
     
-    // Caches source -> target during addStatusEffect for hasEffect() lookups
+    // Caches source -> target during addEffect for hasEffect() lookups
     @Unique
-    private static final ThreadLocal<Map<StatusEffect, StatusEffect>> conversionCache = 
+    private static final ThreadLocal<Map<MobEffect, MobEffect>> conversionCache = 
         ThreadLocal.withInitial(HashMap::new);
     
     @Shadow
-    public abstract Map<net.minecraft.registry.entry.RegistryEntry<StatusEffect>, StatusEffectInstance> getActiveStatusEffects();
+    public abstract Map<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> getActiveEffectsMap();
     
-    // Caches conversion for hasEffect() during addStatusEffect
+    // Caches conversion for hasEffect() during addEffect
     // Actual conversion happens in StatusEffectInstanceMixin
     @ModifyVariable(
-        method = "addStatusEffect(Lnet/minecraft/entity/effect/StatusEffectInstance;Lnet/minecraft/entity/Entity;)Z",
+        method = "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z",
         at = @At("HEAD"),
         argsOnly = true
     )
-    private StatusEffectInstance modifyEffectInstance(StatusEffectInstance instance) {
+    private MobEffectInstance modifyEffectInstance(MobEffectInstance instance) {
         Boolean processing = isProcessingConversion.get();
         if (Boolean.TRUE.equals(processing)) {
             return instance;
@@ -63,7 +63,7 @@ public abstract class LivingEntityMixin {
                 return instance;
             }
             
-            StatusEffect effect = instance.getEffectType().value();
+            MobEffect effect = instance.getEffect().value();
             String effectId = EffectUtils.getEffectId(effect);
             if (effectId == null) {
                 return instance;
@@ -71,7 +71,7 @@ public abstract class LivingEntityMixin {
             
             EffectMappingEntry mapping = unifier.getMapping(effectId);
             if (mapping != null && !mapping.isOnlyVisualChange()) {
-                StatusEffect targetEffect = mapping.getResolvedTargetEffect();
+                MobEffect targetEffect = mapping.getResolvedTargetEffect();
                 
                 if (targetEffect == null) {
                     EffectificationLogger.warn("[AddEffect] Target effect not found for: " + effectId + 
@@ -90,23 +90,23 @@ public abstract class LivingEntityMixin {
         }
     }
     
-    // Clear conversion cache after addStatusEffect
-    @Inject(method = "addStatusEffect(Lnet/minecraft/entity/effect/StatusEffectInstance;Lnet/minecraft/entity/Entity;)Z", at = @At("RETURN"))
-    private void onAddStatusEffectReturn(StatusEffectInstance instance, Entity source, CallbackInfoReturnable<Boolean> cir) {
-        Map<StatusEffect, StatusEffect> cache = conversionCache.get();
+    // Clear conversion cache after addEffect
+    @Inject(method = "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z", at = @At("RETURN"))
+    private void onAddStatusEffectReturn(MobEffectInstance instance, Entity source, CallbackInfoReturnable<Boolean> cir) {
+        Map<MobEffect, MobEffect> cache = conversionCache.get();
         if (!cache.isEmpty()) {
             cache.clear();
         }
     }
     
     @ModifyVariable(
-        method = "hasStatusEffect",
+        method = "hasEffect",
         at = @At("HEAD"),
         argsOnly = true
     )
-    private net.minecraft.registry.entry.RegistryEntry<StatusEffect> modifyHasEffectParameter(net.minecraft.registry.entry.RegistryEntry<StatusEffect> effect) {
+    private net.minecraft.core.Holder<MobEffect> modifyHasEffectParameter(net.minecraft.core.Holder<MobEffect> effect) {
         if (effect == null) return effect;
-        StatusEffect converted = getUnifiedEffectForLookup(effect.value());
+        MobEffect converted = getUnifiedEffectForLookup(effect.value());
         if (converted != effect.value()) {
             return getRegistryEntry(converted);
         }
@@ -114,13 +114,13 @@ public abstract class LivingEntityMixin {
     }
     
     @ModifyVariable(
-        method = "getStatusEffect",
+        method = "getEffect",
         at = @At("HEAD"),
         argsOnly = true
     )
-    private net.minecraft.registry.entry.RegistryEntry<StatusEffect> modifyGetEffectParameter(net.minecraft.registry.entry.RegistryEntry<StatusEffect> effect) {
+    private net.minecraft.core.Holder<MobEffect> modifyGetEffectParameter(net.minecraft.core.Holder<MobEffect> effect) {
         if (effect == null) return effect;
-        StatusEffect converted = getUnifiedEffectForLookup(effect.value());
+        MobEffect converted = getUnifiedEffectForLookup(effect.value());
         if (converted != effect.value()) {
             return getRegistryEntry(converted);
         }
@@ -128,13 +128,13 @@ public abstract class LivingEntityMixin {
     }
     
     @ModifyVariable(
-        method = "removeStatusEffect",
+        method = "removeEffect",
         at = @At("HEAD"),
         argsOnly = true
     )
-    private net.minecraft.registry.entry.RegistryEntry<StatusEffect> modifyRemoveEffectParameter(net.minecraft.registry.entry.RegistryEntry<StatusEffect> effect) {
+    private net.minecraft.core.Holder<MobEffect> modifyRemoveEffectParameter(net.minecraft.core.Holder<MobEffect> effect) {
         if (effect == null) return effect;
-        StatusEffect converted = getUnifiedEffectSafe(effect.value());
+        MobEffect converted = getUnifiedEffectSafe(effect.value());
         if (converted != effect.value()) {
             return getRegistryEntry(converted);
         }
@@ -142,14 +142,14 @@ public abstract class LivingEntityMixin {
     }
     
     @Unique
-    private net.minecraft.registry.entry.RegistryEntry<StatusEffect> getRegistryEntry(StatusEffect effect) {
-        net.minecraft.registry.Registry<StatusEffect> registry = net.minecraft.registry.Registries.STATUS_EFFECT;
-        return registry.getEntry(effect);
+    private net.minecraft.core.Holder<MobEffect> getRegistryEntry(MobEffect effect) {
+        net.minecraft.core.Registry<MobEffect> registry = net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT;
+        return registry.wrapAsHolder(effect);
     }
     
     // Gets unified effect with recursion protection
     @Unique
-    private StatusEffect getUnifiedEffectSafe(StatusEffect effect) {
+    private MobEffect getUnifiedEffectSafe(MobEffect effect) {
         Boolean processing = isProcessingConversion.get();
         if (Boolean.TRUE.equals(processing)) return effect;
         
@@ -158,7 +158,7 @@ public abstract class LivingEntityMixin {
             
             if (effect == null) return effect;
             
-            StatusEffect cachedTarget = conversionCache.get().get(effect);
+            MobEffect cachedTarget = conversionCache.get().get(effect);
             if (cachedTarget != null) {
                 return cachedTarget;
             }
@@ -174,7 +174,7 @@ public abstract class LivingEntityMixin {
                     return effect;
                 }
                 
-                StatusEffect targetEffect = mapping.getResolvedTargetEffect();
+                MobEffect targetEffect = mapping.getResolvedTargetEffect();
                 if (targetEffect != null && targetEffect != effect) {
                     return targetEffect;
                 }
@@ -186,9 +186,9 @@ public abstract class LivingEntityMixin {
         }
     }
     
-    // Respects unidirectional mode for hasEffect/getStatusEffect
+    // Respects unidirectional mode for hasEffect/getEffect
     @Unique
-    private StatusEffect getUnifiedEffectForLookup(StatusEffect effect) {
+    private MobEffect getUnifiedEffectForLookup(MobEffect effect) {
         Boolean processing = isProcessingConversion.get();
         if (Boolean.TRUE.equals(processing)) return effect;
         
@@ -196,7 +196,7 @@ public abstract class LivingEntityMixin {
         try {
             if (effect == null) return effect;
             
-            StatusEffect cachedTarget = conversionCache.get().get(effect);
+            MobEffect cachedTarget = conversionCache.get().get(effect);
             if (cachedTarget != null) {
                 return cachedTarget;
             }
@@ -222,7 +222,7 @@ public abstract class LivingEntityMixin {
     }
     
     // Calls extraApplyEffectTick after updating effects
-    @Inject(method = "tickStatusEffects", at = @At("RETURN"))
+    @Inject(method = "tickEffects", at = @At("RETURN"))
     private void onTickStatusEffects(CallbackInfo ci) {
         if (shouldSkipTickProcessing()) {
             return;
@@ -249,21 +249,21 @@ public abstract class LivingEntityMixin {
         }
         
         LivingEntity entity = (LivingEntity) (Object) this;
-        Map<net.minecraft.registry.entry.RegistryEntry<StatusEffect>, StatusEffectInstance> activeEffects = entity.getActiveStatusEffects();
+        Map<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> activeEffects = entity.getActiveEffectsMap();
         
         if (activeEffects.isEmpty()) {
             return;
         }
         
-        for (Map.Entry<net.minecraft.registry.entry.RegistryEntry<StatusEffect>, StatusEffectInstance> entry : activeEffects.entrySet()) {
+        for (Map.Entry<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> entry : activeEffects.entrySet()) {
             processEffectEntry(entity, entry, unifier);
         }
     }
     
     @Unique
-    private void processEffectEntry(LivingEntity entity, Map.Entry<net.minecraft.registry.entry.RegistryEntry<StatusEffect>, StatusEffectInstance> entry, EffectUnifier unifier) {
-        StatusEffect effect = entry.getKey().value();
-        StatusEffectInstance instance = entry.getValue();
+    private void processEffectEntry(LivingEntity entity, Map.Entry<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> entry, EffectUnifier unifier) {
+        MobEffect effect = entry.getKey().value();
+        MobEffectInstance instance = entry.getValue();
         
         String effectId = EffectUtils.getEffectId(effect);
         if (effectId == null) {
@@ -284,7 +284,7 @@ public abstract class LivingEntityMixin {
     }
     
     @Unique
-    private void applyExtraEffectTicks(LivingEntity entity, StatusEffectInstance instance, EffectMappingEntry mapping, EffectUnifier unifier) {
+    private void applyExtraEffectTicks(LivingEntity entity, MobEffectInstance instance, EffectMappingEntry mapping, EffectUnifier unifier) {
         List<String> extraPatterns = mapping.getExtraApplyEffectTickList();
         for (String extraEffectPattern : extraPatterns) {
             if (extraEffectPattern.contains("*")) {
@@ -296,16 +296,16 @@ public abstract class LivingEntityMixin {
     }
     
     @Unique
-    private void applyExtraEffectTickExact(LivingEntity entity, StatusEffectInstance instance, String effectId) {
-        StatusEffect extraEffect = EffectUtils.getEffectByName(effectId);
-        if (extraEffect != null && extraEffect.canApplyUpdateEffect(instance.getDuration(), instance.getAmplifier())) {
-            extraEffect.applyUpdateEffect(entity, instance.getAmplifier());
+    private void applyExtraEffectTickExact(LivingEntity entity, MobEffectInstance instance, String effectId) {
+        MobEffect extraEffect = EffectUtils.getEffectByName(effectId);
+        if (extraEffect != null && extraEffect.shouldApplyEffectTickThisTick(instance.getDuration(), instance.getAmplifier())) {
+            extraEffect.applyEffectTick(entity, instance.getAmplifier());
         }
     }
     
     // Applies extra effect tick for wildcard patterns
     @Unique
-    private void applyExtraEffectTickWildcard(LivingEntity entity, StatusEffectInstance instance, String pattern, EffectUnifier unifier) {
+    private void applyExtraEffectTickWildcard(LivingEntity entity, MobEffectInstance instance, String pattern, EffectUnifier unifier) {
         if (pattern.equals("*:*")) {
             EffectificationLogger.warn("Dangerous extraApplyEffectTick pattern rejected: *:* (would call all effects)");
             return;
@@ -321,10 +321,10 @@ public abstract class LivingEntityMixin {
             }
         }
         
-        List<StatusEffect> matchingEffects = unifier.getMatchingEffects(pattern);
-        for (StatusEffect effect : matchingEffects) {
-            if (effect.canApplyUpdateEffect(instance.getDuration(), instance.getAmplifier())) {
-                effect.applyUpdateEffect(entity, instance.getAmplifier());
+        List<MobEffect> matchingEffects = unifier.getMatchingEffects(pattern);
+        for (MobEffect effect : matchingEffects) {
+            if (effect.shouldApplyEffectTickThisTick(instance.getDuration(), instance.getAmplifier())) {
+                effect.applyEffectTick(entity, instance.getAmplifier());
             }
         }
     }
