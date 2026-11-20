@@ -1,0 +1,41 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "MIT"
+
+[[mods]]
+logoFile = "assets/effectification/icon.png"
+modId = "effectification"
+version = "${version}"
+displayName = "Effectification"
+authors = "UtherHel"
+description = '''
+Unifies similar effects from different mods to prevent duplication and improve compatibility.
+'''
+
+[[dependencies.effectification]]
+modId = "forge"
+mandatory = true
+versionRange = "[47.4.10,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.effectification]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.1,1.21)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.effectification]]
+modId = "architectury"
+mandatory = true
+versionRange = "[9.2.14,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.effectification]]
+modId = "fzzy_config"
+mandatory = true
+versionRange = "[0.7.0,)"
+ordering = "AFTER"
+side = "BOTH"
