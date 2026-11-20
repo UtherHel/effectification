@@ -1,5 +1,6 @@
 package dev.utherhel.effectification.fabric;
 
+//? if fabric {
 import dev.utherhel.effectification.Effectification;
 import net.fabricmc.api.ModInitializer;
 
@@ -9,3 +10,4 @@ public final class EffectificationFabric implements ModInitializer {
         Effectification.init();
     }
 }
+//?}

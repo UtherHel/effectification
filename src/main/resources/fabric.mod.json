@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "effectification",
+  "id": "${id}",
   "version": "${version}",
-  "name": "Effectification",
+  "name": "${name}",
   "description": "Unifies similar effects from different mods to prevent duplication and improve compatibility.",
   "authors": [
     "UtherHel"
@@ -11,7 +11,7 @@
     "homepage": "https://github.com/utherhel/effectification"
   },
   "license": "MIT",
-  "icon": "assets/effectification/icon.png",
+  "icon": "assets/${id}/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -22,10 +22,9 @@
     "effectification.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.16.5",
-    "minecraft": "~1.21.1",
-    "java": ">=21",
-    "architectury": ">=13.0.6",
+    "fabricloader": "${loader}",
+    "minecraft": "${minecraft}",
+    "java": ">=${java}",
     "fzzy_config": ">=0.7.0"
   }
 }

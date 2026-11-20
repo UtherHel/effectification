@@ -36,13 +36,21 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
     private long effectification$cachedUnifierVersion = -1;
     
     @Shadow
+    //? if >=1.21 {
     public abstract net.minecraft.core.Holder<MobEffect> getEffect();
+    //?} else {
+    /*public abstract MobEffect getEffect();
+    *///?}
     
     @Shadow
     public abstract int getAmplifier();
     
     @Inject(method = "getEffect", at = @At("RETURN"), cancellable = true)
+    //? if >=1.21 {
     private void onGetEffectType(CallbackInfoReturnable<net.minecraft.core.Holder<MobEffect>> cir) {
+    //?} else {
+    /*private void onGetEffectType(CallbackInfoReturnable<MobEffect> cir) {
+    *///?}
         if (Boolean.TRUE.equals(effectification$isProcessing.get())) {
             return;
         }
@@ -62,28 +70,42 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
             }
             
             if (effectification$cachedTargetEffect != null) {
+                //? if >=1.21 {
                 cir.setReturnValue(effectification$getRegistryEntry(effectification$cachedTargetEffect));
+                //?} else {
+                /*cir.setReturnValue(effectification$cachedTargetEffect);
+                *///?}
             }
         } finally {
             effectification$isProcessing.set(false);
         }
     }
     
+    //? if >=1.21 {
     @Unique
     private net.minecraft.core.Holder<MobEffect> effectification$getRegistryEntry(MobEffect effect) {
         net.minecraft.core.Registry<MobEffect> registry = net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT;
         return registry.wrapAsHolder(effect);
     }
+    //?}
     
     @Unique
+    //? if >=1.21 {
     private void effectification$checkAndCacheConversion(CallbackInfoReturnable<net.minecraft.core.Holder<MobEffect>> cir) {
+    //?} else {
+    /*private void effectification$checkAndCacheConversion(CallbackInfoReturnable<MobEffect> cir) {
+    *///?}
         EffectUnifier unifier = Effectification.getEffectUnifier();
         if (unifier == null) {
             effectification$conversionChecked = true;
             return;
         }
         
+        //? if >=1.21 {
         MobEffect effect = cir.getReturnValue().value();
+        //?} else {
+        /*MobEffect effect = cir.getReturnValue();
+        *///?}
         effectification$cachedEffectId = EffectUtils.getEffectId(effect);
         if (effectification$cachedEffectId == null) {
             effectification$conversionChecked = true;
@@ -101,7 +123,11 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
             if (targetEffect != null && targetEffect != effect) {
                 effectification$cachedTargetEffect = targetEffect;
                 effectification$conversionChecked = true;
+                //? if >=1.21 {
                 cir.setReturnValue(effectification$getRegistryEntry(targetEffect));
+                //?} else {
+                /*cir.setReturnValue(targetEffect);
+                *///?}
                 return;
             }
         }
@@ -172,7 +198,11 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
             EffectMappingEntry mapping = unifier.getMapping(effectification$cachedEffectId);
             if (mapping != null) {
                 MobEffect targetEffect = mapping.getResolvedTargetEffect();
+                //? if >=1.21 {
                 if (targetEffect != null && targetEffect != this.getEffect().value()) {
+                //?} else {
+                /*if (targetEffect != null && targetEffect != this.getEffect()) {
+                *///?}
                     cir.setReturnValue(targetEffect.getDescriptionId());
                 }
             }

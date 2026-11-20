@@ -3,37 +3,30 @@ loaderVersion = "[47,)"
 license = "MIT"
 
 [[mods]]
-logoFile = "assets/effectification/icon.png"
-modId = "effectification"
+logoFile = "assets/${id}/icon.png"
+modId = "${id}"
 version = "${version}"
-displayName = "Effectification"
+displayName = "${name}"
 authors = "UtherHel"
 description = '''
 Unifies similar effects from different mods to prevent duplication and improve compatibility.
 '''
 
-[[dependencies.effectification]]
+[[dependencies.${id}]]
 modId = "forge"
 mandatory = true
-versionRange = "[47.4.10,)"
+versionRange = "${loader}"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.effectification]]
+[[dependencies.${id}]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.20.1,1.21)"
+versionRange = "${minecraft}"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.effectification]]
-modId = "architectury"
-mandatory = true
-versionRange = "[9.2.14,)"
-ordering = "AFTER"
-side = "BOTH"
-
-[[dependencies.effectification]]
+[[dependencies.${id}]]
 modId = "fzzy_config"
 mandatory = true
 versionRange = "[0.7.0,)"

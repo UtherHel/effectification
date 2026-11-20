@@ -1,6 +1,7 @@
 package dev.utherhel.effectification.neoforge;
 
-import dev.utherhel.effectification.Effectification;
+//? if neoforge {
+/*import dev.utherhel.effectification.Effectification;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 
@@ -10,3 +11,4 @@ public final class EffectificationNeoForge {
         Effectification.init();
     }
 }
+*///?}

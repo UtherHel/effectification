@@ -33,7 +33,11 @@ public class EffectUtils {
         
         try {
             // Use cached Identifier to avoid repeated object creation
+            //? if >=1.21 {
             ResourceLocation location = identifierCache.computeIfAbsent(effectId, ResourceLocation::parse);
+            //?} else {
+            /*ResourceLocation location = identifierCache.computeIfAbsent(effectId, ResourceLocation::new);
+            *///?}
             return BuiltInRegistries.MOB_EFFECT.get(location);
         } catch (Exception e) {
             return null;

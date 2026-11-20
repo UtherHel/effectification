@@ -27,7 +27,11 @@ public class EffectificationConfig extends Config {
     public DebugSection debug = new DebugSection();
     
     public EffectificationConfig() {
+        //? if >=1.21 {
         super(ResourceLocation.fromNamespaceAndPath("effectification", "effectification"));
+        //?} else {
+        /*super(ResourceLocation.tryBuild("effectification", "effectification"));
+        *///?}
         ValidatedAny<EffectMappingEntry> handler = new ValidatedAny<>(new EffectMappingEntry());
         
         this.staticMappings = handler.toList(new ArrayList<>());

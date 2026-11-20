@@ -3,10 +3,10 @@ loaderVersion = "[4,)"
 license = "MIT"
 
 [[mods]]
-logoFile = "assets/effectification/icon.png"
-modId = "effectification"
+logoFile = "assets/${id}/icon.png"
+modId = "${id}"
 version = "${version}"
-displayName = "Effectification"
+displayName = "${name}"
 authors = "UtherHel"
 description = '''
 Unifies similar effects from different mods to prevent duplication and improve compatibility.
@@ -15,28 +15,21 @@ Unifies similar effects from different mods to prevent duplication and improve c
 [[mixins]]
 config = "effectification.mixins.json"
 
-[[dependencies.effectification]]
+[[dependencies.${id}]]
 modId = "neoforge"
 type = "required"
-versionRange = "[21.1.1,)"
+versionRange = "${loader}"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.effectification]]
+[[dependencies.${id}]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21.1,1.22)"
+versionRange = "${minecraft}"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.effectification]]
-modId = "architectury"
-type = "required"
-versionRange = "[13.0.6,)"
-ordering = "AFTER"
-side = "BOTH"
-
-[[dependencies.effectification]]
+[[dependencies.${id}]]
 modId = "fzzy_config"
 type = "required"
 versionRange = "[0.7.0,)"

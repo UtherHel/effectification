@@ -1,0 +1,35 @@
+# https://stonecutter.kikugie.dev/wiki/v2/reference/gradle-api/structured-properties
+mod.id = "effectification"
+mod.name = "Effectification"
+mod.group = "dev.utherhel.effectification"
+mod.version = "2.0.4"
+
+deps.fabric_loader = "0.18.4"
+loomx.loom_version = "1.20.0-alpha.31"
+deps.mixin = "0.8.5"
+# Fzzy Config is written in Kotlin; its API signatures need the stdlib on the compile classpath
+deps.kotlin = "2.0.20"
+
+# mod.mc_compat and mod.loader_compat go into fabric.mod.json / mods.toml / neoforge.mods.toml
+
+[fabric."1.21.1"]
+mod.mc_compat = "~1.21.1"
+mod.loader_compat = ">=0.16.5"
+deps.fzzy_config = "0.7.6+1.21"
+
+[neoforge."1.21.1"]
+mod.mc_compat = "[1.21.1,1.22)"
+mod.loader_compat = "[21.1.1,)"
+deps.neo_loader = "21.1.267"
+deps.fzzy_config = "0.7.6+1.21+neoforge"
+
+[fabric."1.20.1"]
+mod.mc_compat = "~1.20.1"
+mod.loader_compat = ">=0.18.4"
+deps.fzzy_config = "0.7.6+1.20.1"
+
+[forge."1.20.1"]
+mod.mc_compat = "[1.20.1,1.21)"
+mod.loader_compat = "[47.4.10,)"
+deps.forge_loader = "1.20.1-47.4.29"
+deps.fzzy_config = "0.7.6+1.20.1+forge"

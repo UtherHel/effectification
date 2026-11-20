@@ -37,7 +37,11 @@ public abstract class LivingEntityMixin {
         ThreadLocal.withInitial(HashMap::new);
     
     @Shadow
+    //? if >=1.21 {
     public abstract Map<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> getActiveEffectsMap();
+    //?} else {
+    /*public abstract Map<MobEffect, MobEffectInstance> getActiveEffectsMap();
+    *///?}
     
     // Caches conversion for hasEffect() during addEffect
     // Actual conversion happens in StatusEffectInstanceMixin
@@ -63,7 +67,11 @@ public abstract class LivingEntityMixin {
                 return instance;
             }
             
+            //? if >=1.21 {
             MobEffect effect = instance.getEffect().value();
+            //?} else {
+            /*MobEffect effect = instance.getEffect();
+            *///?}
             String effectId = EffectUtils.getEffectId(effect);
             if (effectId == null) {
                 return instance;
@@ -104,6 +112,7 @@ public abstract class LivingEntityMixin {
         at = @At("HEAD"),
         argsOnly = true
     )
+    //? if >=1.21 {
     private net.minecraft.core.Holder<MobEffect> modifyHasEffectParameter(net.minecraft.core.Holder<MobEffect> effect) {
         if (effect == null) return effect;
         MobEffect converted = getUnifiedEffectForLookup(effect.value());
@@ -112,12 +121,18 @@ public abstract class LivingEntityMixin {
         }
         return effect;
     }
+    //?} else {
+    /*private MobEffect modifyHasEffectParameter(MobEffect effect) {
+        return getUnifiedEffectForLookup(effect);
+    }
+    *///?}
     
     @ModifyVariable(
         method = "getEffect",
         at = @At("HEAD"),
         argsOnly = true
     )
+    //? if >=1.21 {
     private net.minecraft.core.Holder<MobEffect> modifyGetEffectParameter(net.minecraft.core.Holder<MobEffect> effect) {
         if (effect == null) return effect;
         MobEffect converted = getUnifiedEffectForLookup(effect.value());
@@ -126,12 +141,18 @@ public abstract class LivingEntityMixin {
         }
         return effect;
     }
+    //?} else {
+    /*private MobEffect modifyGetEffectParameter(MobEffect effect) {
+        return getUnifiedEffectForLookup(effect);
+    }
+    *///?}
     
     @ModifyVariable(
         method = "removeEffect",
         at = @At("HEAD"),
         argsOnly = true
     )
+    //? if >=1.21 {
     private net.minecraft.core.Holder<MobEffect> modifyRemoveEffectParameter(net.minecraft.core.Holder<MobEffect> effect) {
         if (effect == null) return effect;
         MobEffect converted = getUnifiedEffectSafe(effect.value());
@@ -140,12 +161,19 @@ public abstract class LivingEntityMixin {
         }
         return effect;
     }
+    //?} else {
+    /*private MobEffect modifyRemoveEffectParameter(MobEffect effect) {
+        return getUnifiedEffectSafe(effect);
+    }
+    *///?}
     
+    //? if >=1.21 {
     @Unique
     private net.minecraft.core.Holder<MobEffect> getRegistryEntry(MobEffect effect) {
         net.minecraft.core.Registry<MobEffect> registry = net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT;
         return registry.wrapAsHolder(effect);
     }
+    //?}
     
     // Gets unified effect with recursion protection
     @Unique
@@ -249,20 +277,33 @@ public abstract class LivingEntityMixin {
         }
         
         LivingEntity entity = (LivingEntity) (Object) this;
+        //? if >=1.21 {
         Map<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> activeEffects = entity.getActiveEffectsMap();
+        //?} else {
+        /*Map<MobEffect, MobEffectInstance> activeEffects = entity.getActiveEffectsMap();
+        *///?}
         
         if (activeEffects.isEmpty()) {
             return;
         }
         
+        //? if >=1.21 {
         for (Map.Entry<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> entry : activeEffects.entrySet()) {
+        //?} else {
+        /*for (Map.Entry<MobEffect, MobEffectInstance> entry : activeEffects.entrySet()) {
+        *///?}
             processEffectEntry(entity, entry, unifier);
         }
     }
     
     @Unique
+    //? if >=1.21 {
     private void processEffectEntry(LivingEntity entity, Map.Entry<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> entry, EffectUnifier unifier) {
         MobEffect effect = entry.getKey().value();
+    //?} else {
+    /*private void processEffectEntry(LivingEntity entity, Map.Entry<MobEffect, MobEffectInstance> entry, EffectUnifier unifier) {
+        MobEffect effect = entry.getKey();
+    *///?}
         MobEffectInstance instance = entry.getValue();
         
         String effectId = EffectUtils.getEffectId(effect);
@@ -298,7 +339,11 @@ public abstract class LivingEntityMixin {
     @Unique
     private void applyExtraEffectTickExact(LivingEntity entity, MobEffectInstance instance, String effectId) {
         MobEffect extraEffect = EffectUtils.getEffectByName(effectId);
+        //? if >=1.21 {
         if (extraEffect != null && extraEffect.shouldApplyEffectTickThisTick(instance.getDuration(), instance.getAmplifier())) {
+        //?} else {
+        /*if (extraEffect != null && extraEffect.isDurationEffectTick(instance.getDuration(), instance.getAmplifier())) {
+        *///?}
             extraEffect.applyEffectTick(entity, instance.getAmplifier());
         }
     }
@@ -323,7 +368,11 @@ public abstract class LivingEntityMixin {
         
         List<MobEffect> matchingEffects = unifier.getMatchingEffects(pattern);
         for (MobEffect effect : matchingEffects) {
+            //? if >=1.21 {
             if (effect.shouldApplyEffectTickThisTick(instance.getDuration(), instance.getAmplifier())) {
+            //?} else {
+            /*if (effect.isDurationEffectTick(instance.getDuration(), instance.getAmplifier())) {
+            *///?}
                 effect.applyEffectTick(entity, instance.getAmplifier());
             }
         }

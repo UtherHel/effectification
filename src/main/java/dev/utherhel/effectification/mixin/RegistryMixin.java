@@ -97,7 +97,11 @@ public abstract class RegistryMixin<T> {
             return new int[]{0, 1};
         }
         
+        //? if >=1.21 {
         ResourceLocation targetIdentifier = ResourceLocation.parse(targetId);
+        //?} else {
+        /*ResourceLocation targetIdentifier = new ResourceLocation(targetId);
+        *///?}
         Holder.Reference<T> targetHolder = byLocation.get(targetIdentifier);
         
         if (targetHolder == null) {
@@ -142,7 +146,11 @@ public abstract class RegistryMixin<T> {
     
     private boolean injectSingleAlias(String sourceId, Holder.Reference<T> targetHolder) {
         try {
+            //? if >=1.21 {
             ResourceLocation sourceIdentifier = ResourceLocation.parse(sourceId);
+            //?} else {
+            /*ResourceLocation sourceIdentifier = new ResourceLocation(sourceId);
+            *///?}
             
             Holder.Reference<T> existingHolder = byLocation.get(sourceIdentifier);
             if (existingHolder != null) {

@@ -9,7 +9,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+//? if >=1.21 {
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+//?} else {
+/*import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+*///?}
 
 @Mixin(MobEffect.class)
 public class StatusEffectMixin {
@@ -17,7 +21,11 @@ public class StatusEffectMixin {
     private static final ThreadLocal<Boolean> isProcessing = ThreadLocal.withInitial(() -> false);
     
     @Inject(method = "applyEffectTick", at = @At("HEAD"), cancellable = true)
+    //? if >=1.21 {
     private void onApplyUpdateEffect(LivingEntity entity, int amplifier, CallbackInfoReturnable<Boolean> cir) {
+    //?} else {
+    /*private void onApplyUpdateEffect(LivingEntity entity, int amplifier, CallbackInfo ci) {
+    *///?}
         if (Boolean.TRUE.equals(isProcessing.get())) {
             return;
         }
@@ -33,7 +41,11 @@ public class StatusEffectMixin {
             String effectId = EffectUtils.getEffectId(thisEffect);
             
             if (effectId != null && unifier.shouldDiscardEffectTick(effectId)) {
+                //? if >=1.21 {
                 cir.setReturnValue(true);
+                //?} else {
+                /*ci.cancel();
+                *///?}
             }
         } finally {
             isProcessing.set(false);

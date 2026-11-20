@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import dev.architectury.platform.Platform;
 import dev.utherhel.effectification.config.EffectificationConfig;
 import dev.utherhel.effectification.config.EffectMappingEntry;
 import me.fzzyhmstrs.fzzy_config.api.ConfigApi;
@@ -17,6 +16,16 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+
+//? if fabric {
+import net.fabricmc.loader.api.FabricLoader;
+//?}
+//? if forge {
+/*import net.minecraftforge.fml.loading.FMLPaths;
+*///?}
+//? if neoforge {
+/*import net.neoforged.fml.loading.FMLPaths;
+*///?}
 
 public final class Effectification {
     public static final String MOD_ID = "effectification";
@@ -31,7 +40,11 @@ public final class Effectification {
     }
     
     public static void init() {
-        isFabric = Platform.isFabric();
+        //? if fabric {
+        isFabric = true;
+        //?} else {
+        /*isFabric = false;
+        *///?}
         EffectificationLogger.info("Running on platform: " + (isFabric ? "Fabric" : "Forge"));
         
         EffectificationConfig migratedConfig = migrateFromOldConfig();
@@ -59,8 +72,8 @@ public final class Effectification {
     
 
     private static EffectificationConfig migrateFromOldConfig() {
-        Path oldConfigPath = Platform.getConfigFolder().resolve("effectification/effect_mappings.json");
-        Path newConfigPath = Platform.getConfigFolder().resolve("effectification/effectification.toml");
+        Path oldConfigPath = configFolder().resolve("effectification/effect_mappings.json");
+        Path newConfigPath = configFolder().resolve("effectification/effectification.toml");
         
         if (!shouldMigrate(oldConfigPath, newConfigPath)) {
             return null;
@@ -218,6 +231,14 @@ public final class Effectification {
     
     public static EffectificationConfig getConfig() {
         return config;
+    }
+    
+    private static Path configFolder() {
+        //? if fabric {
+        return FabricLoader.getInstance().getConfigDir();
+        //?} else {
+        /*return FMLPaths.CONFIGDIR.get();
+        *///?}
     }
     
     public static boolean isFabric() {
