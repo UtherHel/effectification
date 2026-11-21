@@ -32,7 +32,7 @@ public class EffectUtils {
         }
         
         try {
-            // Use cached Identifier to avoid repeated object creation
+            // Use cached ResourceLocation to avoid repeated object creation
             //? if >=1.21 {
             ResourceLocation location = identifierCache.computeIfAbsent(effectId, ResourceLocation::parse);
             //?} else {

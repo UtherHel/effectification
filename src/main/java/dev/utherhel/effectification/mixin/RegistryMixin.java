@@ -102,11 +102,11 @@ public abstract class RegistryMixin<T> {
         }
         
         //? if >=1.21 {
-        ResourceLocation targetIdentifier = ResourceLocation.parse(targetId);
+        ResourceLocation targetResourceLocation = ResourceLocation.parse(targetId);
         //?} else {
-        /*ResourceLocation targetIdentifier = new ResourceLocation(targetId);
+        /*ResourceLocation targetResourceLocation = new ResourceLocation(targetId);
         *///?}
-        Holder.Reference<T> targetHolder = byLocation.get(targetIdentifier);
+        Holder.Reference<T> targetHolder = byLocation.get(targetResourceLocation);
         
         if (targetHolder == null) {
             EffectificationLogger.warn("[Registry] Target holder not found for: " + targetId);
@@ -151,19 +151,19 @@ public abstract class RegistryMixin<T> {
     private boolean injectSingleAlias(String sourceId, Holder.Reference<T> targetHolder) {
         try {
             //? if >=1.21 {
-            ResourceLocation sourceIdentifier = ResourceLocation.parse(sourceId);
+            ResourceLocation sourceResourceLocation = ResourceLocation.parse(sourceId);
             //?} else {
-            /*ResourceLocation sourceIdentifier = new ResourceLocation(sourceId);
+            /*ResourceLocation sourceResourceLocation = new ResourceLocation(sourceId);
             *///?}
             
-            Holder.Reference<T> existingHolder = byLocation.get(sourceIdentifier);
+            Holder.Reference<T> existingHolder = byLocation.get(sourceResourceLocation);
             if (existingHolder != null) {
                 return existingHolder == targetHolder;
             }
             
-            byLocation.put(sourceIdentifier, targetHolder);
+            byLocation.put(sourceResourceLocation, targetHolder);
             
-            ResourceKey<T> sourceKey = (ResourceKey<T>) ResourceKey.create(key, sourceIdentifier);
+            ResourceKey<T> sourceKey = (ResourceKey<T>) ResourceKey.create(key, sourceResourceLocation);
             byKey.put(sourceKey, targetHolder);
             
             return true;
