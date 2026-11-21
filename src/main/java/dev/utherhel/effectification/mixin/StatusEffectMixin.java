@@ -3,6 +3,7 @@ package dev.utherhel.effectification.mixin;
 import dev.utherhel.effectification.Effectification;
 import dev.utherhel.effectification.EffectUnifier;
 import dev.utherhel.effectification.util.EffectUtils;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,7 +22,9 @@ public class StatusEffectMixin {
     private static final ThreadLocal<Boolean> isProcessing = ThreadLocal.withInitial(() -> false);
     
     @Inject(method = "applyEffectTick", at = @At("HEAD"), cancellable = true)
-    //? if >=1.21 {
+    //? if >=1.21.2 {
+    /*private void onApplyUpdateEffect(ServerLevel level, LivingEntity entity, int amplifier, CallbackInfoReturnable<Boolean> cir) {
+    *///?} else if >=1.21 {
     private void onApplyUpdateEffect(LivingEntity entity, int amplifier, CallbackInfoReturnable<Boolean> cir) {
     //?} else {
     /*private void onApplyUpdateEffect(LivingEntity entity, int amplifier, CallbackInfo ci) {

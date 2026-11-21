@@ -38,7 +38,11 @@ public class EffectUtils {
             //?} else {
             /*ResourceLocation location = identifierCache.computeIfAbsent(effectId, ResourceLocation::new);
             *///?}
+            //? if >=1.21.2 {
+            /*return BuiltInRegistries.MOB_EFFECT.getValue(location);
+            *///?} else {
             return BuiltInRegistries.MOB_EFFECT.get(location);
+            //?}
         } catch (Exception e) {
             return null;
         }

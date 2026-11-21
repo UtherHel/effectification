@@ -50,7 +50,11 @@ public abstract class RegistryMixin<T> {
     }
     
     private boolean isStatusEffectRegistry() {
+        //? if >=1.21.11 {
+        /*return key.identifier().toString().equals("minecraft:mob_effect");
+        *///?} else {
         return key.location().toString().equals("minecraft:mob_effect");
+        //?}
     }
     
     private int[] processAllMappings(EffectUnifier unifier) {

@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -344,7 +345,11 @@ public abstract class LivingEntityMixin {
         //?} else {
         /*if (extraEffect != null && extraEffect.isDurationEffectTick(instance.getDuration(), instance.getAmplifier())) {
         *///?}
+            //? if >=1.21.2 {
+            /*if (entity.level() instanceof ServerLevel serverLevel) extraEffect.applyEffectTick(serverLevel, entity, instance.getAmplifier());
+            *///?} else {
             extraEffect.applyEffectTick(entity, instance.getAmplifier());
+            //?}
         }
     }
     
@@ -373,7 +378,11 @@ public abstract class LivingEntityMixin {
             //?} else {
             /*if (effect.isDurationEffectTick(instance.getDuration(), instance.getAmplifier())) {
             *///?}
+                //? if >=1.21.2 {
+                /*if (entity.level() instanceof ServerLevel serverLevel) effect.applyEffectTick(serverLevel, entity, instance.getAmplifier());
+                *///?} else {
                 effect.applyEffectTick(entity, instance.getAmplifier());
+                //?}
             }
         }
     }

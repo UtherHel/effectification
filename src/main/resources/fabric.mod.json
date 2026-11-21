@@ -13,11 +13,6 @@
   "license": "MIT",
   "icon": "assets/${id}/icon.png",
   "environment": "*",
-  "entrypoints": {
-    "main": [
-      "dev.utherhel.effectification.fabric.EffectificationFabric"
-    ]
-  },
   "mixins": [
     "effectification.mixins.json"
   ],
@@ -25,6 +20,7 @@
     "fabricloader": "${loader}",
     "minecraft": "${minecraft}",
     "java": ">=${java}",
+    "fabric-api": "*",
     "fzzy_config": ">=0.7.0"
   }
 }

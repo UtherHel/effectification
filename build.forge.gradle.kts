@@ -1,14 +1,24 @@
+import me.modmuss50.mpp.ReleaseType
 import dev.kikugie.stonecutter.controller.task.StonecutterTaskMutexService
 
 plugins {
     id("net.neoforged.moddev.legacyforge")
+    id("me.modmuss50.mod-publish-plugin")
+    alias(ft.plugins.default)
 }
 
 // DO NOT set group = ...!
 version = "${sc.properties["mod.version"]}+${sc.current.version}"
 base.archivesName = "${sc.properties["mod.id"]}-forge"
 
-val requiredJava = JavaVersion.VERSION_17
+val requiredJava: JavaVersion = when {
+    sc.current.parsed >= "1.18" -> JavaVersion.VERSION_17
+    else -> JavaVersion.VERSION_16
+}
+
+// This can be used for publishing on Modrinth and Curseforge
+val compatibleVersions: List<String> = sc.properties.rawOrNull("mod", "mc_releases")
+    ?.asList().orEmpty().map { it.toString() }
 
 repositories {
     mavenCentral() // Kotlin stdlib for the Fzzy Config API
@@ -51,6 +61,16 @@ mixin {
     config("effectification.mixins.json")
 }
 
+fletchingTable {
+    // Registers classes annotated with `@Mixin` in the mixin config
+    mixins.configure(sourceSets.main) {
+        mixin("effectification.mixins.json")
+    }
+
+    // Converts language files in `assets/*/lang/` to Json
+    lang.configure(sourceSets.main) {}
+}
+
 java {
     withSourcesJar()
     targetCompatibility = requiredJava
@@ -86,7 +106,7 @@ tasks {
             filter { if (it == "{") """{ "refmap": "effectification.refmap.json",""" else it }
         }
 
-        exclude("fabric.mod.json", "META-INF/neoforge.mods.toml")
+        exclude("fabric.mod.json", "*.ct", "META-INF/neoforge.mods.toml")
     }
 
     jar {
@@ -107,5 +127,46 @@ tasks {
         inputs.property("version", sc.properties["mod.version"])
         from(named<Jar>("reobfJar").flatMap { it.archiveFile }, named<Jar>("sourcesJar").flatMap { it.archiveFile })
         into(rootProject.layout.buildDirectory.file("libs/${sc.properties["mod.version"]}"))
+    }
+}
+
+publishMods {
+    val modrinthToken: String? = env.fetchOrNull("MODRINTH_TOKEN")
+    val publishMr: Boolean = sc.properties.getAs("publish.modrinth")
+    val curseforgeToken: String? = env.fetchOrNull("CURSEFORGE_TOKEN")
+    val publishCf: Boolean = sc.properties.getAs("publish.curseforge")
+    val releaseToken: String? = env.fetchOrNull("GITHUB_TOKEN")
+    val publishRelease: Boolean = sc.properties.getAs("publish.github")
+
+    dryRun = sc.properties.getAs<Boolean>("publish.dry_run")
+        || (publishMr && modrinthToken == null)
+        || (publishCf && curseforgeToken == null)
+        || (publishRelease && releaseToken == null)
+    type = ReleaseType.of(sc.properties["publish.status"])
+    file = tasks.named<Jar>("reobfJar").flatMap { it.archiveFile }
+    additionalFiles.from(tasks.named<Jar>("sourcesJar").flatMap { it.archiveFile })
+    displayName = "${sc.properties["mod.name"]} Forge ${sc.properties["mod.version"]} for ${sc.current.version}"
+    changelog = providers.fileContents(rootProject.layout.projectDirectory.file("CHANGELOG-latest.md")).asText
+    modLoaders.add("forge")
+
+    if (publishMr) modrinth {
+        projectId = sc.properties["publish.modrinth_id"]
+        accessToken = modrinthToken
+        minecraftVersions.addAll(compatibleVersions)
+        requires("fzzy-config")
+    }
+
+    if (publishCf) curseforge {
+        projectId = sc.properties["publish.curseforge_id"]
+        accessToken = curseforgeToken
+        minecraftVersions.addAll(compatibleVersions)
+        client = true
+        server = true
+        requires("fzzy-config")
+    }
+
+    if (publishRelease) github {
+        accessToken = releaseToken
+        parent(rootProject.tasks.named("publishGithub"))
     }
 }
