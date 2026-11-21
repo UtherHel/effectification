@@ -36,7 +36,7 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
     private long effectification$cachedUnifierVersion = -1;
     
     @Shadow
-    //? if >=1.21 {
+    //? if >=1.20.5 {
     public abstract net.minecraft.core.Holder<MobEffect> getEffect();
     //?} else {
     /*public abstract MobEffect getEffect();
@@ -46,7 +46,7 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
     public abstract int getAmplifier();
     
     @Inject(method = "getEffect", at = @At("RETURN"), cancellable = true)
-    //? if >=1.21 {
+    //? if >=1.20.5 {
     private void onGetEffectType(CallbackInfoReturnable<net.minecraft.core.Holder<MobEffect>> cir) {
     //?} else {
     /*private void onGetEffectType(CallbackInfoReturnable<MobEffect> cir) {
@@ -70,7 +70,7 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
             }
             
             if (effectification$cachedTargetEffect != null) {
-                //? if >=1.21 {
+                //? if >=1.20.5 {
                 cir.setReturnValue(effectification$getRegistryEntry(effectification$cachedTargetEffect));
                 //?} else {
                 /*cir.setReturnValue(effectification$cachedTargetEffect);
@@ -81,7 +81,7 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
         }
     }
     
-    //? if >=1.21 {
+    //? if >=1.20.5 {
     @Unique
     private net.minecraft.core.Holder<MobEffect> effectification$getRegistryEntry(MobEffect effect) {
         net.minecraft.core.Registry<MobEffect> registry = net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT;
@@ -90,7 +90,7 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
     //?}
     
     @Unique
-    //? if >=1.21 {
+    //? if >=1.20.5 {
     private void effectification$checkAndCacheConversion(CallbackInfoReturnable<net.minecraft.core.Holder<MobEffect>> cir) {
     //?} else {
     /*private void effectification$checkAndCacheConversion(CallbackInfoReturnable<MobEffect> cir) {
@@ -101,7 +101,7 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
             return;
         }
         
-        //? if >=1.21 {
+        //? if >=1.20.5 {
         MobEffect effect = cir.getReturnValue().value();
         //?} else {
         /*MobEffect effect = cir.getReturnValue();
@@ -123,7 +123,7 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
             if (targetEffect != null && targetEffect != effect) {
                 effectification$cachedTargetEffect = targetEffect;
                 effectification$conversionChecked = true;
-                //? if >=1.21 {
+                //? if >=1.20.5 {
                 cir.setReturnValue(effectification$getRegistryEntry(targetEffect));
                 //?} else {
                 /*cir.setReturnValue(targetEffect);
@@ -198,7 +198,7 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
             EffectMappingEntry mapping = unifier.getMapping(effectification$cachedEffectId);
             if (mapping != null) {
                 MobEffect targetEffect = mapping.getResolvedTargetEffect();
-                //? if >=1.21 {
+                //? if >=1.20.5 {
                 if (targetEffect != null && targetEffect != this.getEffect().value()) {
                 //?} else {
                 /*if (targetEffect != null && targetEffect != this.getEffect()) {

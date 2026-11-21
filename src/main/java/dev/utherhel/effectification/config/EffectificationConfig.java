@@ -32,7 +32,7 @@ public class EffectificationConfig extends Config {
         //?} else {
         /*super(ResourceLocation.tryBuild("effectification", "effectification"));
         *///?}
-        ValidatedAny<EffectMappingEntry> handler = new ValidatedAny<>(new EffectMappingEntry());
+        ValidatedAny<EffectMappingEntry> handler = MappingEntryHandler.create();
         
         this.staticMappings = handler.toList(new ArrayList<>());
         this.dynamicMappings = handler.toList(createDefaultMappings());
@@ -43,10 +43,13 @@ public class EffectificationConfig extends Config {
         return 2;
     }
     
+    // Fzzy Config 0.5.9 (1.20.4 - 1.20.6) has no SaveType
+    //? if <1.20.2 || >=1.21 {
     @Override
     public me.fzzyhmstrs.fzzy_config.api.SaveType saveType() {
         return me.fzzyhmstrs.fzzy_config.api.SaveType.OVERWRITE;
     }
+    //?}
     
     /**
      * Creates default dynamic mappings based on platform
@@ -78,7 +81,7 @@ public class EffectificationConfig extends Config {
             EffectificationLogger.info("Migrating config from version " + deserializedVersion + " to 6");
         }
         
-        ValidatedAny<EffectMappingEntry> handler = new ValidatedAny<>(new EffectMappingEntry());
+        ValidatedAny<EffectMappingEntry> handler = MappingEntryHandler.create();
         
         if (staticMappings == null) {
             staticMappings = handler.toList(new ArrayList<>());
@@ -106,8 +109,15 @@ public class EffectificationConfig extends Config {
      * Called automatically by fconfig when config is updated on server.
      * Reloads the EffectUnifier to apply new mappings immediately.
      */
+    //? if <1.20.2 || >=1.21 {
     @Override
     public void onUpdateServer(me.fzzyhmstrs.fzzy_config.event.api.ServerUpdateContext context) {
         dev.utherhel.effectification.Effectification.reloadEffectUnifier();
     }
+    //?} else {
+    /*@Override
+    public void onUpdateServer(net.minecraft.server.level.ServerPlayer player) {
+        dev.utherhel.effectification.Effectification.reloadEffectUnifier();
+    }
+    *///?}
 }

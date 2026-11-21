@@ -38,7 +38,7 @@ public abstract class LivingEntityMixin {
         ThreadLocal.withInitial(HashMap::new);
     
     @Shadow
-    //? if >=1.21 {
+    //? if >=1.20.5 {
     public abstract Map<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> getActiveEffectsMap();
     //?} else {
     /*public abstract Map<MobEffect, MobEffectInstance> getActiveEffectsMap();
@@ -68,7 +68,7 @@ public abstract class LivingEntityMixin {
                 return instance;
             }
             
-            //? if >=1.21 {
+            //? if >=1.20.5 {
             MobEffect effect = instance.getEffect().value();
             //?} else {
             /*MobEffect effect = instance.getEffect();
@@ -113,7 +113,7 @@ public abstract class LivingEntityMixin {
         at = @At("HEAD"),
         argsOnly = true
     )
-    //? if >=1.21 {
+    //? if >=1.20.5 {
     private net.minecraft.core.Holder<MobEffect> modifyHasEffectParameter(net.minecraft.core.Holder<MobEffect> effect) {
         if (effect == null) return effect;
         MobEffect converted = getUnifiedEffectForLookup(effect.value());
@@ -133,7 +133,7 @@ public abstract class LivingEntityMixin {
         at = @At("HEAD"),
         argsOnly = true
     )
-    //? if >=1.21 {
+    //? if >=1.20.5 {
     private net.minecraft.core.Holder<MobEffect> modifyGetEffectParameter(net.minecraft.core.Holder<MobEffect> effect) {
         if (effect == null) return effect;
         MobEffect converted = getUnifiedEffectForLookup(effect.value());
@@ -153,7 +153,7 @@ public abstract class LivingEntityMixin {
         at = @At("HEAD"),
         argsOnly = true
     )
-    //? if >=1.21 {
+    //? if >=1.20.5 {
     private net.minecraft.core.Holder<MobEffect> modifyRemoveEffectParameter(net.minecraft.core.Holder<MobEffect> effect) {
         if (effect == null) return effect;
         MobEffect converted = getUnifiedEffectSafe(effect.value());
@@ -168,7 +168,7 @@ public abstract class LivingEntityMixin {
     }
     *///?}
     
-    //? if >=1.21 {
+    //? if >=1.20.5 {
     @Unique
     private net.minecraft.core.Holder<MobEffect> getRegistryEntry(MobEffect effect) {
         net.minecraft.core.Registry<MobEffect> registry = net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT;
@@ -278,7 +278,7 @@ public abstract class LivingEntityMixin {
         }
         
         LivingEntity entity = (LivingEntity) (Object) this;
-        //? if >=1.21 {
+        //? if >=1.20.5 {
         Map<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> activeEffects = entity.getActiveEffectsMap();
         //?} else {
         /*Map<MobEffect, MobEffectInstance> activeEffects = entity.getActiveEffectsMap();
@@ -288,7 +288,7 @@ public abstract class LivingEntityMixin {
             return;
         }
         
-        //? if >=1.21 {
+        //? if >=1.20.5 {
         for (Map.Entry<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> entry : activeEffects.entrySet()) {
         //?} else {
         /*for (Map.Entry<MobEffect, MobEffectInstance> entry : activeEffects.entrySet()) {
@@ -298,7 +298,7 @@ public abstract class LivingEntityMixin {
     }
     
     @Unique
-    //? if >=1.21 {
+    //? if >=1.20.5 {
     private void processEffectEntry(LivingEntity entity, Map.Entry<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> entry, EffectUnifier unifier) {
         MobEffect effect = entry.getKey().value();
     //?} else {
@@ -340,7 +340,7 @@ public abstract class LivingEntityMixin {
     @Unique
     private void applyExtraEffectTickExact(LivingEntity entity, MobEffectInstance instance, String effectId) {
         MobEffect extraEffect = EffectUtils.getEffectByName(effectId);
-        //? if >=1.21 {
+        //? if >=1.20.2 {
         if (extraEffect != null && extraEffect.shouldApplyEffectTickThisTick(instance.getDuration(), instance.getAmplifier())) {
         //?} else {
         /*if (extraEffect != null && extraEffect.isDurationEffectTick(instance.getDuration(), instance.getAmplifier())) {
@@ -373,7 +373,7 @@ public abstract class LivingEntityMixin {
         
         List<MobEffect> matchingEffects = unifier.getMatchingEffects(pattern);
         for (MobEffect effect : matchingEffects) {
-            //? if >=1.21 {
+            //? if >=1.20.2 {
             if (effect.shouldApplyEffectTickThisTick(instance.getDuration(), instance.getAmplifier())) {
             //?} else {
             /*if (effect.isDurationEffectTick(instance.getDuration(), instance.getAmplifier())) {

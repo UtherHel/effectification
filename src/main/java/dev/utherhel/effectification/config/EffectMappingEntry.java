@@ -70,7 +70,10 @@ public class EffectMappingEntry extends ConfigSection {
         this.unidirectional = false;
         this.extraApplyEffectTick = new ValidatedString("", EFFECT_SUGGESTIONS_NO_WILDCARDS);
         this.discardEffectTick = new ValidatedString("", EFFECT_SUGGESTIONS_WITH_WILDCARDS);
+        // Fzzy Config 0.5.9 (1.20.4 - 1.20.6) has no setTranslatableEntryKey; translationKey() below covers it
+        //? if <1.20.2 || >=1.21 {
         this.setTranslatableEntryKey(Effectification.MOD_ID + ".config.mapping");
+        //?}
     }
     
     public EffectMappingEntry(String sourceEffect, String targetEffect) {
@@ -92,7 +95,10 @@ public class EffectMappingEntry extends ConfigSection {
         this.unidirectional = unidirectional;
         this.extraApplyEffectTick = new ValidatedString(extraApplyEffectTick != null ? extraApplyEffectTick : "", EFFECT_SUGGESTIONS_NO_WILDCARDS);
         this.discardEffectTick = new ValidatedString(discardEffectTick != null ? discardEffectTick : "", EFFECT_SUGGESTIONS_WITH_WILDCARDS);
+        // Fzzy Config 0.5.9 (1.20.4 - 1.20.6) has no setTranslatableEntryKey; translationKey() below covers it
+        //? if <1.20.2 || >=1.21 {
         this.setTranslatableEntryKey(Effectification.MOD_ID + ".config.mapping");
+        //?}
     }
     
     @Override
@@ -450,7 +456,10 @@ public class EffectMappingEntry extends ConfigSection {
         matchCache.put(effectId, result);
     }
     
+    // Fzzy Config 0.5.9 has no deserializedChanged to override
+    //? if <1.20.2 || >=1.21 {
     @Override
+    //?}
         public boolean deserializedChanged(Object old, Object newValue) {
             if (!isValidComparison(old, newValue)) {
                 return true;

@@ -63,6 +63,8 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:${sc.properties["deps.fabric_api"]}")
     // Brings Fabric API and Fabric Language Kotlin transitively, so dev runs work
     modImplementation("me.fzzyhmstrs:fzzy_config:${sc.properties["deps.fzzy_config"]}")
+    // Fzzy Config 0.5.9 (1.20.4 - 1.20.6): MappingEntryHandler overrides ValidatedAny.deserialize(TomlElement, ...)
+    if (sc.properties["deps.fzzy_config"].toString().startsWith("0.5.")) compileOnly("net.peanuuutz.tomlkt:tomlkt-jvm:0.3.7")
 }
 
 java {
@@ -95,6 +97,7 @@ tasks {
             register("version", "mod.version")
             register("minecraft", "mod.mc_compat")
             register("loader", "mod.loader_compat")
+            register("fzzy", "mod.fzzy_fabric")
             put("java", requiredJava.majorVersion)
         }
         inputs.property("java", requiredJava.majorVersion)

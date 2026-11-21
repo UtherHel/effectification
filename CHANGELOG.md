@@ -4,6 +4,8 @@
 
 ### Added
 - Minecraft 26.1, 26.2 and 26.3 support (Fabric and NeoForge)
+- Minecraft 1.20.4, 1.20.5 - 1.20.6, 1.21.2 - 1.21.3, 1.21.4, 1.21.5, 1.21.6 - 1.21.8, 1.21.9 - 1.21.10 and 1.21.11 support (Fabric and NeoForge)
+  - on 1.20.4 - 1.20.6 the mod uses Fzzy Config 0.5.9 (the newest for those versions)
 
 ### Changed
 - One codebase for all Minecraft versions and loaders (Stonecutter)

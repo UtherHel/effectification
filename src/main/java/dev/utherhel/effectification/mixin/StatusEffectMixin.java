@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-//? if >=1.21 {
+//? if >=1.20.5 {
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 //?} else {
 /*import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -24,7 +24,7 @@ public class StatusEffectMixin {
     @Inject(method = "applyEffectTick", at = @At("HEAD"), cancellable = true)
     //? if >=1.21.2 {
     /*private void onApplyUpdateEffect(ServerLevel level, LivingEntity entity, int amplifier, CallbackInfoReturnable<Boolean> cir) {
-    *///?} else if >=1.21 {
+    *///?} else if >=1.20.5 {
     private void onApplyUpdateEffect(LivingEntity entity, int amplifier, CallbackInfoReturnable<Boolean> cir) {
     //?} else {
     /*private void onApplyUpdateEffect(LivingEntity entity, int amplifier, CallbackInfo ci) {
@@ -44,7 +44,7 @@ public class StatusEffectMixin {
             String effectId = EffectUtils.getEffectId(thisEffect);
             
             if (effectId != null && unifier.shouldDiscardEffectTick(effectId)) {
-                //? if >=1.21 {
+                //? if >=1.20.5 {
                 cir.setReturnValue(true);
                 //?} else {
                 /*ci.cancel();

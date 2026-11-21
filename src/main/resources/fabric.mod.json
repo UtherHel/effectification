@@ -21,6 +21,6 @@
     "minecraft": "${minecraft}",
     "java": ">=${java}",
     "fabric-api": "*",
-    "fzzy_config": ">=0.7.0"
+    "fzzy_config": "${fzzy}"
   }
 }

@@ -18,6 +18,13 @@ deps.mixin = "0.8.5"
 # Fzzy Config is written in Kotlin; its API signatures need the stdlib on the compile classpath
 deps.kotlin = "2.0.20"
 
+# Minimal Fzzy Config in fabric.mod.json / neoforge.mods.toml (0.5.9 on 1.20.4 - 1.20.6)
+mod.fzzy_fabric = ">=0.7.0"
+mod.fzzy_neoforge = "[0.7.0,)"
+
+# FML (javafml) range in neoforge.mods.toml; NeoForge 20.2 / 20.4 / 20.6 ship FML 1 / 2 / 3
+mod.fml_compat = "[4,)"
+
 # mod.mc_compat and mod.loader_compat go into fabric.mod.json / mods.toml / neoforge.mods.toml
 
 ["26.3"]
@@ -63,35 +70,164 @@ deps.fzzy_config = "0.7.7+26.1"
 [neoforge."26.1"]
 mod.mc_compat = "[26.1,26.2)"
 mod.loader_compat = "[26.1,)"
-deps.neo_loader = "26.1.0.19-beta"
+deps.neo_loader = "26.1.2.129"
 deps.fzzy_config = "0.7.7+26.1+neoforge"
 
+["1.21.11"]
+mod.mc_releases = ["1.21.11"]
+
+[fabric."1.21.11"]
+mod.mc_compat = "1.21.11"
+mod.loader_compat = ">=0.15"
+deps.fabric_api = "0.141.6+1.21.11"
+deps.fzzy_config = "0.7.7+1.21.11"
+
+[neoforge."1.21.11"]
+mod.mc_compat = "[1.21.11]"
+mod.loader_compat = "[21.11,)"
+deps.neo_loader = "21.11.48"
+deps.fzzy_config = "0.7.7+1.21.11+neoforge"
+
+["1.21.10"]
+mod.mc_releases = ["1.21.9", "1.21.10"]
+
+[fabric."1.21.10"]
+mod.mc_compat = ">=1.21.9 <=1.21.10"
+mod.loader_compat = ">=0.15"
+deps.fabric_api = "0.138.4+1.21.10"
+deps.fzzy_config = "0.7.7+1.21.9"
+
+[neoforge."1.21.10"]
+mod.mc_compat = "[1.21.9,1.21.10]"
+mod.loader_compat = "[21.9,)"
+deps.neo_loader = "21.10.64"
+deps.fzzy_config = "0.7.7+1.21.9+neoforge"
+
+["1.21.8"]
+mod.mc_releases = ["1.21.6", "1.21.7", "1.21.8"]
+
+[fabric."1.21.8"]
+mod.mc_compat = ">=1.21.6 <=1.21.8"
+mod.loader_compat = ">=0.15"
+deps.fabric_api = "0.136.1+1.21.8"
+deps.fzzy_config = "0.7.6+1.21.6"
+
+[neoforge."1.21.8"]
+mod.mc_compat = "[1.21.7,1.21.8]"
+mod.mc_releases = ["1.21.7", "1.21.8"]
+mod.loader_compat = "[21.7,)"
+deps.neo_loader = "21.8.57"
+deps.fzzy_config = "0.7.7+1.21.7+neoforge"
+
+["1.21.5"]
+mod.mc_releases = ["1.21.5"]
+
+[fabric."1.21.5"]
+mod.mc_compat = "1.21.5"
+mod.loader_compat = ">=0.15"
+deps.fabric_api = "0.128.2+1.21.5"
+deps.fzzy_config = "0.7.7+1.21.5"
+
+[neoforge."1.21.5"]
+mod.mc_compat = "[1.21.5]"
+mod.loader_compat = "[21.5,)"
+deps.neo_loader = "21.5.101"
+deps.fzzy_config = "0.7.7+1.21.5+neoforge"
+
+["1.21.4"]
+mod.mc_releases = ["1.21.4"]
+
+[fabric."1.21.4"]
+mod.mc_compat = "1.21.4"
+mod.loader_compat = ">=0.15"
+deps.fabric_api = "0.119.4+1.21.4"
+deps.fzzy_config = "0.7.7+1.21.3"
+
+[neoforge."1.21.4"]
+mod.mc_compat = "[1.21.4]"
+mod.loader_compat = "[21.4,)"
+deps.neo_loader = "21.4.161"
+deps.fzzy_config = "0.7.7+1.21.3+neoforge"
+
+["1.21.3"]
+mod.mc_releases = ["1.21.2", "1.21.3"]
+
+[fabric."1.21.3"]
+mod.mc_compat = ">=1.21.2 <=1.21.3"
+mod.loader_compat = ">=0.15"
+deps.fabric_api = "0.114.1+1.21.3"
+deps.fzzy_config = "0.7.7+1.21.3"
+
+[neoforge."1.21.3"]
+mod.mc_compat = "[1.21.2,1.21.3]"
+mod.loader_compat = "[21.2,)"
+deps.neo_loader = "21.3.100"
+deps.fzzy_config = "0.7.7+1.21.3+neoforge"
+
 ["1.21.1"]
-mod.mc_releases = ["1.21.1"]
+mod.mc_releases = ["1.21", "1.21.1"]
 
 [fabric."1.21.1"]
-mod.mc_compat = "~1.21.1"
+mod.mc_compat = ">=1.21 <=1.21.1"
 mod.loader_compat = ">=0.16.5"
 deps.fabric_api = "0.116.18+1.21.1"
 deps.fzzy_config = "0.7.7+1.21"
 
 [neoforge."1.21.1"]
-mod.mc_compat = "[1.21.1,1.22)"
+# NeoForge 21.1.1+ only (as before), so not 1.21
+mod.mc_compat = "[1.21.1]"
+mod.mc_releases = ["1.21.1"]
 mod.loader_compat = "[21.1.1,)"
 deps.neo_loader = "21.1.267"
 deps.fzzy_config = "0.7.7+1.21+neoforge"
+
+["1.20.6"]
+mod.fml_compat = "[3,)"
+mod.mc_releases = ["1.20.5", "1.20.6"]
+mod.fzzy_fabric = ">=0.5.9"
+mod.fzzy_neoforge = "[0.5.9,)"
+
+[fabric."1.20.6"]
+mod.mc_compat = ">=1.20.5 <=1.20.6"
+mod.loader_compat = ">=0.15"
+deps.fabric_api = "0.100.8+1.20.6"
+deps.fzzy_config = "0.5.9+1.20.6"
+
+[neoforge."1.20.6"]
+mod.mc_compat = "[1.20.5,1.20.6]"
+mod.loader_compat = "[20.5,)"
+deps.neo_loader = "20.6.144"
+deps.fzzy_config = "0.5.9+1.20.6+neoforge"
+
+["1.20.4"]
+mod.fml_compat = "[2,)"
+mod.mc_releases = ["1.20.4"]
+mod.fzzy_fabric = ">=0.5.9"
+mod.fzzy_neoforge = "[0.5.9,)"
+
+[fabric."1.20.4"]
+mod.mc_compat = "1.20.4"
+mod.loader_compat = ">=0.15"
+deps.fabric_api = "0.97.3+1.20.4"
+deps.fzzy_config = "0.5.9+1.20.4"
+
+[neoforge."1.20.4"]
+mod.mc_compat = "[1.20.4]"
+mod.loader_compat = "[20.4,)"
+deps.neo_loader = "20.4.253"
+deps.fzzy_config = "0.5.9+1.20.4+neoforge"
 
 ["1.20.1"]
 mod.mc_releases = ["1.20.1"]
 
 [fabric."1.20.1"]
-mod.mc_compat = "~1.20.1"
+mod.mc_compat = "1.20.1"
 mod.loader_compat = ">=0.18.4"
 deps.fabric_api = "0.92.12+1.20.1"
 deps.fzzy_config = "0.7.7+1.20.1"
 
 [forge."1.20.1"]
-mod.mc_compat = "[1.20.1,1.21)"
+mod.mc_compat = "[1.20.1]"
 mod.loader_compat = "[47.4.10,)"
 deps.forge_loader = "1.20.1-47.4.29"
 deps.fzzy_config = "0.7.7+1.20.1+forge"

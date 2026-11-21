@@ -28,6 +28,8 @@ repositories {
 dependencies {
     compileOnly("me.fzzyhmstrs:fzzy_config:${sc.properties["deps.fzzy_config"]}")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:${sc.properties["deps.kotlin"]}")
+    // Fzzy Config 0.5.9 (1.20.4 - 1.20.6): MappingEntryHandler overrides ValidatedAny.deserialize(TomlElement, ...)
+    if (sc.properties["deps.fzzy_config"].toString().startsWith("0.5.")) compileOnly("net.peanuuutz.tomlkt:tomlkt-jvm:0.3.7")
 }
 
 neoForge {
@@ -87,9 +89,13 @@ tasks {
             register("version", "mod.version")
             register("minecraft", "mod.mc_compat")
             register("loader", "mod.loader_compat")
+            register("fml", "mod.fml_compat")
+            register("fzzy", "mod.fzzy_neoforge")
         }
 
         filesMatching("META-INF/neoforge.mods.toml") { expand(props) }
+        // NeoForge before 20.5 still reads META-INF/mods.toml
+        if (sc.current.parsed < "1.20.5") filesMatching("META-INF/neoforge.mods.toml") { name = "mods.toml" }
 
         val mixinJava = "JAVA_${requiredJava.majorVersion}"
         filesMatching("*.mixins.json") { expand("java" to mixinJava) }
