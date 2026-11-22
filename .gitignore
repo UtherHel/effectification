@@ -43,3 +43,6 @@ replay_*.log
 
 .env
 .env.*
+
+# Icons, logos and old release jars (local only)
+/branding/
