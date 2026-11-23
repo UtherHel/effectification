@@ -8,22 +8,12 @@ default_targets = ["1.21.1-fabric", "1.21.1-neoforge", "1.20.1-forge", "1.20.6-n
 log_noise = []
 
 # Bugs the scenes found, not fixed yet (reported as "known issue" warnings until then):
-# - source_still_seen: LivingEntityMixin.getUnifiedEffectForLookup returns the source effect in both branches, so
-#   hasEffect/getEffect(source) is false for every converted effect, not only for unidirectional mappings
-#   (CHANGELOG 1.0.4: unidirectional is what makes hasEffect(source) false; the flag changes nothing now).
-# - discard_tick_blocks (1.20.2+): StatusEffectMixin cancels MobEffect.applyEffectTick, but since 1.20.2 every
-#   vanilla effect that ticks (regeneration, poison, wither, ...) overrides that method in its own class, so
-#   discardEffectTick blocks nothing there (1.20.1 still has the ticks in MobEffect itself: passes).
 # - static_alias (Forge 1.20.1): a static mapping does not alias the id; /effect give <source id> fails. The alias
 #   goes into MappedRegistry's maps, which Forge's own registry wrapper does not read.
 # - server_mappings_synced, visual_only_renamed_on_client (Forge 1.20.1, mp): the server's config never reaches the
 #   client there (the client's file is not overwritten, onSyncClient never runs; Fzzy Config 0.7.7+1.20.1+forge), so
 #   the client keeps its own mappings. On 1.21.1 the same scenes pass. Cause not found yet.
 [known_failures]
-"*" = ["effects/source_still_seen"]
-"1.20.[2-9]-*" = ["effects/discard_tick_blocks"]
-"1.21*" = ["effects/discard_tick_blocks"]
-"26.*" = ["effects/discard_tick_blocks"]
 "1.20.1-forge" = ["effects/static_alias", "client/server_mappings_synced", "client/visual_only_renamed_on_client"]
 
 # runtime mods besides the mod jar (published production jars): the mandatory dependencies of fabric.mod.json and
