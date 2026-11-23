@@ -1,0 +1,156 @@
+# dev/mt.py settings of Effectification (see dev/README.md)
+
+# The everyday set: the active version on both of its loaders, the oldest (Forge), a Fzzy Config 0.5.9 version and
+# the newest targets. `python dev/mt.py smoke "*"` runs every target.
+default_targets = ["1.21.1-fabric", "1.21.1-neoforge", "1.20.1-forge", "1.20.6-neoforge", "26.3-fabric"]
+
+# known-harmless log lines (regexes)
+log_noise = []
+
+# Bugs the scenes found, not fixed yet (reported as "known issue" warnings until then):
+# - source_still_seen: LivingEntityMixin.getUnifiedEffectForLookup returns the source effect in both branches, so
+#   hasEffect/getEffect(source) is false for every converted effect, not only for unidirectional mappings
+#   (CHANGELOG 1.0.4: unidirectional is what makes hasEffect(source) false; the flag changes nothing now).
+# - discard_tick_blocks (1.20.2+): StatusEffectMixin cancels MobEffect.applyEffectTick, but since 1.20.2 every
+#   vanilla effect that ticks (regeneration, poison, wither, ...) overrides that method in its own class, so
+#   discardEffectTick blocks nothing there (1.20.1 still has the ticks in MobEffect itself: passes).
+# - static_alias (Forge 1.20.1): a static mapping does not alias the id; /effect give <source id> fails. The alias
+#   goes into MappedRegistry's maps, which Forge's own registry wrapper does not read.
+# - server_mappings_synced, visual_only_renamed_on_client (Forge 1.20.1, mp): the server's config never reaches the
+#   client there (the client's file is not overwritten, onSyncClient never runs; Fzzy Config 0.7.7+1.20.1+forge), so
+#   the client keeps its own mappings. On 1.21.1 the same scenes pass. Cause not found yet.
+[known_failures]
+"*" = ["effects/source_still_seen"]
+"1.20.[2-9]-*" = ["effects/discard_tick_blocks"]
+"1.21*" = ["effects/discard_tick_blocks"]
+"26.*" = ["effects/discard_tick_blocks"]
+"1.20.1-forge" = ["effects/static_alias", "client/server_mappings_synced", "client/visual_only_renamed_on_client"]
+
+# runtime mods besides the mod jar (published production jars): the mandatory dependencies of fabric.mod.json and
+# (neoforge.)mods.toml, and Fzzy Config's Kotlin runtime (the newest one for the target's loader and version)
+[runtime]
+fabric = [
+    "maven:net.fabricmc.fabric-api:fabric-api:${deps.fabric_api}",
+    "maven:me.fzzyhmstrs:fzzy_config:${deps.fzzy_config}",
+    "modrinth:fabric-language-kotlin:*",
+]
+neoforge = [
+    "maven:me.fzzyhmstrs:fzzy_config:${deps.fzzy_config}",
+    "modrinth:kotlin-for-forge:*",
+]
+forge = [
+    "maven:me.fzzyhmstrs:fzzy_config:${deps.fzzy_config}",
+    "modrinth:kotlin-for-forge:*",
+]
+
+# The scenes' mappings (selftest/Scenarios.java), as the server's config file in the format Fzzy Config writes. The
+# client of an mp run gets only the static ones (files_client below): the rest must reach it with the config sync.
+[files_server."*"]
+"config/effectification/effectification.toml" = '''
+version = 6
+
+[debug]
+logLevel = "WARNINGS"
+
+[[staticMappings]]
+sourceEffect = "modtest:ghost_effect"
+targetEffect = "minecraft:glowing"
+amplifierMultiplier = 1.0
+onlyVisualChange = false
+unidirectional = false
+extraApplyEffectTick = ""
+discardEffectTick = ""
+
+[[dynamicMappings]]
+sourceEffect = "minecraft:poison"
+targetEffect = "minecraft:wither"
+amplifierMultiplier = 2.0
+onlyVisualChange = false
+unidirectional = false
+extraApplyEffectTick = ""
+discardEffectTick = ""
+
+[[dynamicMappings]]
+sourceEffect = "minecraft:fire_resistance"
+targetEffect = "minecraft:water_breathing"
+amplifierMultiplier = 1.0
+onlyVisualChange = true
+unidirectional = false
+extraApplyEffectTick = ""
+discardEffectTick = ""
+
+[[dynamicMappings]]
+sourceEffect = "minecraft:hunger"
+targetEffect = "minecraft:weakness"
+amplifierMultiplier = 1.0
+onlyVisualChange = false
+unidirectional = true
+extraApplyEffectTick = ""
+discardEffectTick = ""
+
+[[dynamicMappings]]
+sourceEffect = "minecraft:luck"
+targetEffect = "minecraft:luck"
+amplifierMultiplier = 1.0
+onlyVisualChange = false
+unidirectional = false
+extraApplyEffectTick = "minecraft:poison"
+discardEffectTick = ""
+
+[[dynamicMappings]]
+sourceEffect = "minecraft:unluck"
+targetEffect = "minecraft:unluck"
+amplifierMultiplier = 1.0
+onlyVisualChange = false
+unidirectional = false
+extraApplyEffectTick = ""
+discardEffectTick = "minecraft:regeneration"
+
+[[dynamicMappings]]
+sourceEffect = "minecraft:slow_fall*"
+targetEffect = "minecraft:levitation"
+amplifierMultiplier = 1.0
+onlyVisualChange = false
+unidirectional = false
+extraApplyEffectTick = ""
+discardEffectTick = ""
+
+[[dynamicMappings]]
+sourceEffect = "minecraft:blind* !minecraft:blindness"
+targetEffect = "minecraft:darkness"
+amplifierMultiplier = 1.0
+onlyVisualChange = false
+unidirectional = false
+extraApplyEffectTick = ""
+discardEffectTick = ""
+
+[[dynamicMappings]]
+sourceEffect = "minecraft:night_vision"
+targetEffect = "minecraft:conduit_power"
+amplifierMultiplier = 3.0
+onlyVisualChange = false
+unidirectional = false
+extraApplyEffectTick = ""
+discardEffectTick = ""
+'''
+
+# The client gets the server's static mappings only: they are registry aliases (@RequiresAction RESTART), so a
+# client without them would get Fzzy Config's restart screen on joining and never reach the world. The dynamic
+# mappings stay off the client: they must arrive with the config sync (ClientScenarios checks that).
+[files_client."*"]
+"config/effectification/effectification.toml" = '''
+version = 6
+dynamicMappings = []
+
+[debug]
+logLevel = "WARNINGS"
+
+[[staticMappings]]
+sourceEffect = "modtest:ghost_effect"
+targetEffect = "minecraft:glowing"
+amplifierMultiplier = 1.0
+onlyVisualChange = false
+unidirectional = false
+extraApplyEffectTick = ""
+discardEffectTick = ""
+'''
