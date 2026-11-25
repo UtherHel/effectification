@@ -1,5 +1,11 @@
 ![Effectification](https://raw.githubusercontent.com/UtherHel/effectification/main/docs/banner.webp)
 
+<p align="center">
+<a href="https://www.curseforge.com/minecraft/mc-mods/effectification"><img src="https://raw.githubusercontent.com/UtherHel/effectification/main/docs/desc/button-curseforge.webp" alt="CurseForge" height="40"></a>
+<a href="https://modrinth.com/mod/effectification"><img src="https://raw.githubusercontent.com/UtherHel/effectification/main/docs/desc/button-modrinth.webp" alt="Modrinth" height="40"></a>
+<a href="https://github.com/UtherHel/effectification"><img src="https://raw.githubusercontent.com/UtherHel/effectification/main/docs/desc/button-github.webp" alt="GitHub" height="40"></a>
+</p>
+
 **Bleeding is bleeding.** Three mods add Bleeding, two add Stun, and each checks only its own: an immunity from one does nothing against another, and two of them stack on the same target. Effectification turns an effect of one mod into the matching effect of another, so every mod sees one and the same effect. Minecraft Java 1.20.1 to 26.3: Fabric 1.20.1 and 1.20.4 - 26.3, Forge 1.20.1, NeoForge 1.20.4 - 1.20.6, 1.21.1 - 1.21.5 and 1.21.7 - 26.3. Needs Fzzy Config (and Fabric API on Fabric). Install it on the server and on every client.
 
 ![Features](https://raw.githubusercontent.com/UtherHel/effectification/main/docs/desc/title-features.webp)
@@ -49,6 +55,13 @@ Every Stun except the resistances and immunities becomes Relics' Stun, or Alex's
 `staticMappings` need a restart, `dynamicMappings` apply when saved. `debug.logLevel` (`NONE`, `ERRORS`, `WARNINGS`, `ALL`) controls the log. Changing the server's config takes permission level 2.
 
 **Same idea, for attributes:** [Attributification](https://modrinth.com/mod/attributification).
+
+<!-- hosting:start -->
+<!-- Hosting banner: uncomment one line and put your partner link in place of the site address. -->
+<!-- [![BisectHosting](https://raw.githubusercontent.com/UtherHel/effectification/main/docs/hosting/bisecthosting.webp)](https://www.bisecthosting.com/) -->
+<!-- [![Kinetic Hosting](https://raw.githubusercontent.com/UtherHel/effectification/main/docs/hosting/kinetichosting.webp)](https://www.kinetichosting.com/) -->
+<!-- [![Nodecraft](https://raw.githubusercontent.com/UtherHel/effectification/main/docs/hosting/nodecraft.webp)](https://nodecraft.com/) -->
+<!-- hosting:end -->
 
 <!-- promo:start -->
 <!-- More from UtherHel: promo cards of other mods go here, two per row, as in the other pages. -->
