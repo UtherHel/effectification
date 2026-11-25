@@ -56,13 +56,6 @@ Every Stun except the resistances and immunities becomes Relics' Stun, or Alex's
 
 **Same idea, for attributes:** [Attributification](https://modrinth.com/mod/attributification).
 
-<!-- hosting:start -->
-<!-- Hosting banner: uncomment one line and put your partner link in place of the site address. -->
-<!-- [![BisectHosting](https://raw.githubusercontent.com/UtherHel/effectification/main/docs/hosting/bisecthosting.webp)](https://www.bisecthosting.com/) -->
-<!-- [![Kinetic Hosting](https://raw.githubusercontent.com/UtherHel/effectification/main/docs/hosting/kinetichosting.webp)](https://www.kinetichosting.com/) -->
-<!-- [![Nodecraft](https://raw.githubusercontent.com/UtherHel/effectification/main/docs/hosting/nodecraft.webp)](https://nodecraft.com/) -->
-<!-- hosting:end -->
-
 <!-- promo:start -->
 <!-- More from UtherHel: promo cards of other mods go here, two per row, as in the other pages. -->
 <!-- promo:end -->
