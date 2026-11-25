@@ -104,6 +104,15 @@ public class EffectificationConfig extends Config {
     public void onUpdateClient() {
         dev.utherhel.effectification.Effectification.reloadEffectUnifier();
     }
+
+    /**
+     * Called by fconfig on the client once the server's config arrived (joining, server reload): the client-side
+     * unifier (visual renames, lookups) must use the server's mappings, not the ones of the local file.
+     */
+    @Override
+    public void onSyncClient() {
+        dev.utherhel.effectification.Effectification.reloadEffectUnifier();
+    }
     
     /**
      * Called automatically by fconfig when config is updated on server.

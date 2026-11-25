@@ -239,12 +239,14 @@ public abstract class LivingEntityMixin {
                 return effect;
             }
             
+            // a converted effect is stored under its target: a lookup of the source finds it there, except for
+            // unidirectional mappings (the source stays hidden) and visual-only ones (nothing was converted)
             EffectMappingEntry mapping = unifier.getMapping(effectId);
-            if (mapping != null && (mapping.isUnidirectional() || mapping.isOnlyVisualChange())) {
+            if (mapping == null || mapping.isUnidirectional() || mapping.isOnlyVisualChange()) {
                 return effect;
             }
-            
-            return effect;
+            MobEffect target = mapping.getResolvedTargetEffect();
+            return target != null ? target : effect;
         } finally {
             isProcessingConversion.set(false);
         }
