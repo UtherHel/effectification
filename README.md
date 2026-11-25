@@ -13,9 +13,6 @@
 - **An editor in the game,** with every registered effect suggested as you type: Mod Menu on Fabric, the mod list on Forge and NeoForge. The server's mappings are sent to every player.
 - **Ready-made mappings** on Forge and NeoForge for Bleeding, Stun, Freeze, Chill, Immolate, Confusion, Knowledge and Sapped, and for the pairs that overlap in Majrusz's Difficulty, Apothic Attributes, Valoria, Relics, Alex's Caves, Alex's Mobs, Mowzie's Mobs, More RPG Classes, Iron's Spells, Goety and Nether Depths Upgrade. Fabric starts empty.
 
-| ![Effectification icon](https://raw.githubusercontent.com/UtherHel/effectification/main/docs/clips/icon.webp) | ![Stun effects from several mods turning into one](https://raw.githubusercontent.com/UtherHel/effectification/main/docs/clips/mapping.webp) |
-| --- | --- |
-
 ![How to use](https://raw.githubusercontent.com/UtherHel/effectification/main/docs/desc/title-how-to-use.webp)
 
 Install it and play: with the built-in mappings a Stun from Goety, Alex's Caves or any other mod is applied as Relics' Stun, and Relics' immunity protects from all of them.
