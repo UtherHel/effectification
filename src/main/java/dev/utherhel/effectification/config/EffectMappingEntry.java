@@ -36,30 +36,30 @@ public class EffectMappingEntry extends ConfigSection {
     private String cachedDiscardEffectTick;
     private List<String> cachedDiscardEffectTickList;
     
-    private Map<String, Boolean> matchCache;
+    private volatile Map<String, Boolean> matchCache;
     
     private MobEffect cachedResolvedTargetEffect;
     private boolean targetEffectResolved = false;
     
-    @Comment("Source effect pattern: *:bleeding, *:bleeding*, modid:effect*, *:bleeding* !*:immunity")
+    @Comment("The effect to replace: an id (relics:stun) or a pattern with * (*:stun*); exceptions after a space, each with ! (*:stun* !*:stun_immunity)")
     public ValidatedString sourceEffect;
     
-    @Comment("Target effect (comma-separated for fallback): primary:effect, fallback:effect")
+    @Comment("The effect used instead; several, separated by commas, are fallbacks: the first installed one is used")
     public ValidatedString targetEffect;
     
-    @Comment("Amplifier multiplier")
+    @Comment("The level (amplifier, 0 = level I) is multiplied by this and rounded, within 0 - 255")
     public double amplifierMultiplier = 1.0;
     
-    @Comment("Visual change only (no amplifier conversion)")
+    @Comment("true: only show the target's name and icon; the source effect keeps working as before")
     public boolean onlyVisualChange = false;
     
-    @Comment("Unidirectional (prevents source mod handlers)")
+    @Comment("true: checks for the source effect no longer find the converted effect (the source mod stops reacting to it)")
     public boolean unidirectional = false;
     
-    @Comment("Extra effects to call applyUpdateEffect() (comma-separated)")
+    @Comment("Effects whose tick also runs while the converted effect is active, e.g. for the source's particles (comma-separated)")
     public ValidatedString extraApplyEffectTick;
     
-    @Comment("Effects to block applyUpdateEffect() (comma-separated, supports wildcards)")
+    @Comment("Effects whose tick is blocked: they stay on the entity but do nothing (comma-separated, * allowed)")
     public ValidatedString discardEffectTick;
     
     public EffectMappingEntry() {
@@ -163,39 +163,35 @@ public class EffectMappingEntry extends ConfigSection {
     @Override
     public MutableComponent description(String fallback) {
         MutableComponent desc = Component.empty();
-        
-        desc.append(Component.literal("Source: ").withStyle(ChatFormatting.GRAY));
-        desc.append(Component.literal(getSourceEffect()).withStyle(ChatFormatting.WHITE));
-        desc.append("\n");
-        
-        desc.append(Component.literal("Target: ").withStyle(ChatFormatting.GRAY));
-        desc.append(Component.literal(getTargetEffect()).withStyle(ChatFormatting.WHITE));
-        desc.append("\n");
-        
-        desc.append(Component.literal("Multiplier: ").withStyle(ChatFormatting.GRAY));
-        desc.append(Component.literal(String.valueOf(getAmplifierMultiplier())).withStyle(ChatFormatting.WHITE));
-        desc.append("\n");
-        
-        desc.append(Component.literal("Visual Only: ").withStyle(ChatFormatting.GRAY));
-        desc.append(Component.literal(String.valueOf(isOnlyVisualChange())).withStyle(ChatFormatting.WHITE));
-        desc.append("\n");
-        
-        desc.append(Component.literal("Unidirectional: ").withStyle(ChatFormatting.GRAY));
-        desc.append(Component.literal(String.valueOf(isUnidirectional())).withStyle(ChatFormatting.WHITE));
-        
+        line(desc, "sourceEffect", getSourceEffect(), false);
+        line(desc, "targetEffect", getTargetEffect(), true);
+        line(desc, "amplifierMultiplier", String.valueOf(getAmplifierMultiplier()), true);
+        line(desc, "onlyVisualChange", yesNo(isOnlyVisualChange()), true);
+        line(desc, "unidirectional", yesNo(isUnidirectional()), true);
         if (getExtraApplyEffectTick() != null && !getExtraApplyEffectTick().isEmpty()) {
-            desc.append("\n");
-            desc.append(Component.literal("Extra Tick: ").withStyle(ChatFormatting.GRAY));
-            desc.append(Component.literal(getExtraApplyEffectTick()).withStyle(ChatFormatting.WHITE));
+            line(desc, "extraApplyEffectTick", getExtraApplyEffectTick(), true);
         }
-        
         if (getDiscardEffectTick() != null && !getDiscardEffectTick().isEmpty()) {
-            desc.append("\n");
-            desc.append(Component.literal("Discard Tick: ").withStyle(ChatFormatting.GRAY));
-            desc.append(Component.literal(getDiscardEffectTick()).withStyle(ChatFormatting.WHITE));
+            line(desc, "discardEffectTick", getDiscardEffectTick(), true);
         }
-        
+        String problem = MappingCheck.problem(this);
+        if (problem != null) {
+            desc.append("\n").append(Component.literal(problem).withStyle(ChatFormatting.RED));
+        }
         return desc;
+    }
+
+    private static void line(MutableComponent desc, String field, String value, boolean newLine) {
+        if (newLine) {
+            desc.append("\n");
+        }
+        desc.append(Component.translatable(Effectification.MOD_ID + ".config.mapping." + field).withStyle(ChatFormatting.GRAY));
+        desc.append(Component.literal(": ").withStyle(ChatFormatting.GRAY));
+        desc.append(Component.literal(value).withStyle(ChatFormatting.WHITE));
+    }
+
+    private static String yesNo(boolean value) {
+        return value ? "✔" : "✘";
     }
     
     public String getSourceEffect() {
@@ -450,10 +446,13 @@ public class EffectMappingEntry extends ConfigSection {
     }
     
     private void cacheMatchResult(String effectId, boolean result) {
-        if (matchCache == null) {
-            matchCache = new java.util.HashMap<>();
+        Map<String, Boolean> cache = matchCache;
+        if (cache == null) {
+            // read by the server thread and the client's render thread at once in single player
+            cache = new java.util.concurrent.ConcurrentHashMap<>();
+            matchCache = cache;
         }
-        matchCache.put(effectId, result);
+        cache.put(effectId, result);
     }
     
     // Fzzy Config 0.5.9 has no deserializedChanged to override
@@ -532,13 +531,11 @@ public class EffectMappingEntry extends ConfigSection {
         String namespace = patternParts[0];
         String path = patternParts[1];
         
+        // *:* would convert every effect of every mod; modid:* (every effect of one mod) is allowed
         if (namespace.equals("*") && path.equals("*")) {
             return false;
         }
-        if (!namespace.equals("*") && path.equals("*")) {
-            return false;
-        }
-        return namespace.equals("*") || path.contains("*");
+        return namespace.contains("*") || path.contains("*");
     }
     
     private boolean matchesNamespace(String effectNamespace, String patternNamespace) {
