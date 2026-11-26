@@ -29,10 +29,14 @@ import net.fabricmc.loader.api.FabricLoader;
 
 public final class Effectification {
     public static final String MOD_ID = "effectification";
-    private static EffectUnifier effectUnifier;
+    private static volatile EffectUnifier effectUnifier;
     private static EffectificationConfig config;
     private static boolean isFabric = false;
-    private static long effectUnifierVersion = 0; // Incremented on each reload
+    private static volatile long effectUnifierVersion = 0; // Incremented on each reload
+    /** The effect registry is complete (all mods registered their effects); mappings can be checked against it. */
+    private static volatile boolean effectRegistryReady = false;
+    /** The static mappings the registry aliases were made from: changing them needs a restart. */
+    private static List<String> appliedStaticMappings = List.of();
     
     private static final List<Runnable> cacheClearCallbacks = new ArrayList<>();
     
@@ -45,7 +49,13 @@ public final class Effectification {
         //?} else {
         /*isFabric = false;
         *///?}
-        EffectificationLogger.info("Running on platform: " + (isFabric ? "Fabric" : "Forge"));
+        //? if fabric {
+        EffectificationLogger.info("Running on platform: Fabric");
+        //?} else if neoforge {
+        /*EffectificationLogger.info("Running on platform: NeoForge");
+        *///?} else {
+        /*EffectificationLogger.info("Running on platform: Forge");
+        *///?}
         
         EffectificationConfig migratedConfig = migrateFromOldConfig();
         
@@ -200,6 +210,25 @@ public final class Effectification {
     
     // Reloads EffectUnifier when config changes
     // Registry aliases require restart, but unidirectional/extra/discard ticks update immediately
+    /** Called once the effect registry is complete: the static aliases are in, and the mappings can be checked. */
+    public static void onEffectRegistryReady() {
+        // NeoForge freezes the registry several times during startup: report the mappings only the first time
+        boolean first = !effectRegistryReady;
+        effectRegistryReady = true;
+        appliedStaticMappings = describe(config.getStaticMappings());
+        if (first) {
+            dev.utherhel.effectification.config.MappingCheck.report(config);
+        }
+    }
+
+    private static List<String> describe(List<EffectMappingEntry> mappings) {
+        List<String> out = new ArrayList<>();
+        for (EffectMappingEntry m : mappings) {
+            out.add(m.toString());
+        }
+        return out;
+    }
+
     public static void reloadEffectUnifier() {
         for (Runnable callback : cacheClearCallbacks) {
             try {
@@ -211,14 +240,19 @@ public final class Effectification {
         
         effectUnifier = new EffectUnifier(config);
         effectUnifierVersion++; // Increment version to invalidate all caches
+        EffectificationLogger.resetWarnOnce();
         
         EffectificationLogger.info("Reloaded " + config.getMappings().size() + " effect mappings");
-        EffectificationLogger.warn("NOTE: Registry aliases are set at startup. Restart the game to apply new source->target mappings.");
-        EffectificationLogger.info("Runtime updates: unidirectional mode, extra ticks, discard ticks, amplifier multipliers");
-        
         config.getMappings().forEach(mapping -> 
             EffectificationLogger.info("  - " + mapping.toString())
         );
+        if (effectRegistryReady) {
+            if (!describe(config.getStaticMappings()).equals(appliedStaticMappings)) {
+                EffectificationLogger.warn("The static mappings changed: the ids they give to other effects change after"
+                    + " a restart. Everything else applies now.");
+            }
+            dev.utherhel.effectification.config.MappingCheck.report(config);
+        }
     }
     
     public static long getEffectUnifierVersion() {

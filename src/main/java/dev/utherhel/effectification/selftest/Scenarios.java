@@ -16,6 +16,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
  *
  * <pre>
  * static   modtest:ghost_effect   -> glowing           a registry alias for an id no mod registers
+ *          bad_omen               -> glowing           a registered source: converted at runtime
  * dynamic  poison                 -> wither            amplifier x2
  *          fire_resistance        -> water_breathing   onlyVisualChange
  *          hunger                 -> weakness          unidirectional
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
  *          unluck                 -> unluck            discardEffectTick regeneration
  *          slow_fall*             -> levitation        wildcard
  *          blind* !blindness      -> darkness          wildcard whose only match is excluded
+ *          invisibility           -> water_breathing   extraApplyEffectTick poison (the target differs)
  *          night_vision           -> conduit_power     amplifier x3 (the mp player scene)
  * </pre>
  *
@@ -37,7 +39,10 @@ final class Scenarios {
     private static final String WILD = "mt_eff_wild";
     private static final String EXCLUDED = "mt_eff_excluded";
     private static final String STATIC = "mt_eff_static";
-    private static final String[] PIGS = {CONVERT, VISUAL, UNI, EXTRA, DISCARD, WILD, EXCLUDED, STATIC};
+    private static final String STATIC_REGISTERED = "mt_eff_static_registered";
+    private static final String EXTRA_TARGET = "mt_eff_extra_target";
+    private static final String[] PIGS = {CONVERT, VISUAL, UNI, EXTRA, DISCARD, WILD, EXCLUDED, STATIC,
+        STATIC_REGISTERED, EXTRA_TARGET};
     private static final int MINUTE = 20 * 60;
 
     private Scenarios() {
@@ -73,6 +78,8 @@ final class Scenarios {
                 pig(srv, WILD).addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, MINUTE, 0));
                 pig(srv, EXCLUDED).addEffect(new MobEffectInstance(MobEffects.BLINDNESS, MINUTE, 0));
                 Probe.cmd(srv, "effect give @e[tag=" + STATIC + "] modtest:ghost_effect 60 0 true");
+                pig(srv, STATIC_REGISTERED).addEffect(new MobEffectInstance(MobEffects.BAD_OMEN, MINUTE, 0));
+                pig(srv, EXTRA_TARGET).addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, MINUTE, 0));
             })
                 .waitTicks(80)
                 .check("converted_to_target", srv -> pig(srv, CONVERT).hasEffect(MobEffects.WITHER) ? null
@@ -116,6 +123,25 @@ final class Scenarios {
                 })
                 .check("static_alias", srv -> pig(srv, STATIC).hasEffect(MobEffects.GLOWING) ? null
                     : "/effect give ... modtest:ghost_effect did not give glowing: " + effects(pig(srv, STATIC)))
+                .check("static_alias_lookup", srv ->
+                    EffectUtils.getEffectByName("modtest:ghost_effect") == TestCompat.effect(MobEffects.GLOWING) ? null
+                        : "the effect registry gives " + EffectUtils.getEffectByName("modtest:ghost_effect")
+                        + " for modtest:ghost_effect, expected glowing")
+                .check("static_registered_converted", srv -> {
+                    LivingEntity p = pig(srv, STATIC_REGISTERED);
+                    return p.hasEffect(MobEffects.GLOWING) && p.hasEffect(MobEffects.BAD_OMEN) ? null
+                        : "a static mapping of the registered bad_omen should convert it to glowing (and still be"
+                        + " found as bad_omen): " + effects(p);
+                })
+                .check("extra_tick_other_target", srv -> pig(srv, EXTRA_TARGET).getHealth() < 100 ? null
+                    : "invisibility -> water_breathing with extraApplyEffectTick poison did no poison damage (health "
+                    + pig(srv, EXTRA_TARGET).getHealth() + "): " + effects(pig(srv, EXTRA_TARGET)))
+                .run(srv -> pig(srv, CONVERT).addEffect(new MobEffectInstance(MobEffects.POISON, MINUTE, 3)))
+                .check("amplifier_follows_upgrade", srv -> {
+                    MobEffectInstance i = pig(srv, CONVERT).getEffect(MobEffects.WITHER);
+                    return i != null && i.getAmplifier() == 6 ? null
+                        : "poison upgraded to amplifier 3 x2 should be wither amplifier 6: " + effects(pig(srv, CONVERT));
+                })
                 .check("remove_by_source", srv -> {
                     LivingEntity p = pig(srv, CONVERT);
                     p.removeEffect(MobEffects.POISON);

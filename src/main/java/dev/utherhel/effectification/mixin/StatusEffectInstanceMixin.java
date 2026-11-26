@@ -26,8 +26,12 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
     @Unique
     private boolean effectification$conversionChecked = false;
     
+    /** The converted amplifier and the raw one it was converted from (the instance's amplifier changes on upgrade). */
     @Unique
     private Integer effectification$cachedAmplifier = null;
+
+    @Unique
+    private int effectification$cachedRawAmplifier = Integer.MIN_VALUE;
     
     @Unique
     private String effectification$cachedEffectId = null;
@@ -57,12 +61,7 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
         
         effectification$isProcessing.set(true);
         try {
-            // Check if cache is still valid
-            long currentVersion = Effectification.getEffectUnifierVersion();
-            if (effectification$cachedUnifierVersion != currentVersion) {
-                effectification$clearCache();
-                effectification$cachedUnifierVersion = currentVersion;
-            }
+            effectification$checkVersion();
             
             if (!effectification$conversionChecked) {
                 effectification$checkAndCacheConversion(cir);
@@ -112,11 +111,8 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
             return;
         }
         
-        if (unifier.getStaticMappings().containsKey(effectification$cachedEffectId)) {
-            effectification$conversionChecked = true;
-            return;
-        }
-        
+        // static mappings too: an id they aliased in the registry already is the target here (no mapping matches
+        // it), and one whose source is a registered effect converts at runtime like a dynamic mapping
         EffectMappingEntry mapping = unifier.getMapping(effectification$cachedEffectId);
         if (mapping != null && !mapping.isOnlyVisualChange()) {
             MobEffect targetEffect = mapping.getResolvedTargetEffect();
@@ -143,8 +139,10 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
         
         try {
             effectification$isProcessing.set(true);
-            
-            if (effectification$cachedAmplifier != null) {
+            effectification$ensureChecked();
+
+            int raw = cir.getReturnValue();
+            if (effectification$cachedAmplifier != null && effectification$cachedRawAmplifier == raw) {
                 cir.setReturnValue(effectification$cachedAmplifier);
                 return;
             }
@@ -158,16 +156,17 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
                 return;
             }
             
-            if (unifier.getStaticMappings().containsKey(effectification$cachedEffectId)) {
+            // scaled when the mapping applies: not visual-only, and one of its targets is installed (it may be the
+            // effect itself: a mapping onto itself only changes the level)
+            EffectMappingEntry mapping = unifier.getMapping(effectification$cachedEffectId);
+            if (mapping == null || mapping.isOnlyVisualChange() || mapping.getResolvedTargetEffect() == null) {
                 return;
             }
             
-            EffectMappingEntry mapping = unifier.getMapping(effectification$cachedEffectId);
-            if (mapping != null && !mapping.isOnlyVisualChange()) {
-                int convertedAmplifier = unifier.convertAmplifier(effectification$cachedEffectId, cir.getReturnValue());
-                effectification$cachedAmplifier = convertedAmplifier;
-                cir.setReturnValue(convertedAmplifier);
-            }
+            int convertedAmplifier = unifier.convertAmplifier(effectification$cachedEffectId, raw);
+            effectification$cachedAmplifier = convertedAmplifier;
+            effectification$cachedRawAmplifier = raw;
+            cir.setReturnValue(convertedAmplifier);
         } finally {
             effectification$isProcessing.set(false);
         }
@@ -181,6 +180,7 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
         
         try {
             effectification$isProcessing.set(true);
+            effectification$ensureChecked();
             
             if (effectification$cachedEffectId == null) {
                 return;
@@ -188,10 +188,6 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
             
             EffectUnifier unifier = Effectification.getEffectUnifier();
             if (unifier == null) {
-                return;
-            }
-            
-            if (unifier.getStaticMappings().containsKey(effectification$cachedEffectId)) {
                 return;
             }
             
@@ -211,11 +207,53 @@ public abstract class StatusEffectInstanceMixin implements CacheCleanable {
         }
     }
     
+    /** Drops the cached conversion when the mappings were reloaded since. */
+    @Unique
+    private void effectification$checkVersion() {
+        long currentVersion = Effectification.getEffectUnifierVersion();
+        if (effectification$cachedUnifierVersion != currentVersion) {
+            effectification$clearCache();
+            effectification$cachedUnifierVersion = currentVersion;
+        }
+    }
+
+    /**
+     * getAmplifier and getDescriptionId depend on the conversion that getEffect works out: run it first when
+     * nothing asked for the effect yet (a tooltip or an amplifier check can come before any getEffect call).
+     * Called with the recursion guard already set, so the getEffect call below returns the raw effect.
+     */
+    @Unique
+    private void effectification$ensureChecked() {
+        effectification$checkVersion();
+        if (effectification$conversionChecked) {
+            return;
+        }
+        EffectUnifier unifier = Effectification.getEffectUnifier();
+        //? if >=1.20.5 {
+        MobEffect effect = this.getEffect().value();
+        //?} else {
+        /*MobEffect effect = this.getEffect();
+        *///?}
+        effectification$conversionChecked = true;
+        effectification$cachedEffectId = EffectUtils.getEffectId(effect);
+        if (unifier == null || effectification$cachedEffectId == null) {
+            return;
+        }
+        EffectMappingEntry mapping = unifier.getMapping(effectification$cachedEffectId);
+        if (mapping != null && !mapping.isOnlyVisualChange()) {
+            MobEffect targetEffect = mapping.getResolvedTargetEffect();
+            if (targetEffect != null && targetEffect != effect) {
+                effectification$cachedTargetEffect = targetEffect;
+            }
+        }
+    }
+
     @Override
     public void effectification$clearCache() {
         effectification$cachedTargetEffect = null;
         effectification$conversionChecked = false;
         effectification$cachedAmplifier = null;
+        effectification$cachedRawAmplifier = Integer.MIN_VALUE;
         effectification$cachedEffectId = null;
     }
 }

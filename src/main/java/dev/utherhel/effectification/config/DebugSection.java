@@ -8,6 +8,6 @@ import me.fzzyhmstrs.fzzy_config.config.ConfigSection;
 @Translation(prefix = Effectification.MOD_ID + ".config.debug")
 public class DebugSection extends ConfigSection {
     
-    @Comment("Logging level: NONE, ERRORS, WARNINGS, ALL")
-    public LogLevel logLevel = LogLevel.ERRORS;
+    @Comment("Logging level: NONE, ERRORS, WARNINGS (mapping problems, the default), ALL (every conversion)")
+    public LogLevel logLevel = LogLevel.WARNINGS;
 }
