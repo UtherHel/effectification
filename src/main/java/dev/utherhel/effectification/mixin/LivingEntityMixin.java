@@ -83,8 +83,8 @@ public abstract class LivingEntityMixin {
                 MobEffect targetEffect = mapping.getResolvedTargetEffect();
                 
                 if (targetEffect == null) {
-                    EffectificationLogger.warn("[AddEffect] Target effect not found for: " + effectId + 
-                        ", targets: " + mapping.getTargetEffect() + " - effect will NOT be converted!");
+                    EffectificationLogger.info("[AddEffect] " + effectId + " is not converted: none of its targets ("
+                        + mapping.getTargetEffect() + ") is installed");
                     return instance;
                 }
                 
@@ -255,7 +255,8 @@ public abstract class LivingEntityMixin {
     // Calls extraApplyEffectTick after updating effects
     @Inject(method = "tickEffects", at = @At("RETURN"))
     private void onTickStatusEffects(CallbackInfo ci) {
-        if (shouldSkipTickProcessing()) {
+        // effect ticks run on the server only, as in vanilla; the client would apply damage or healing a second time
+        if (shouldSkipTickProcessing() || ((LivingEntity) (Object) this).level().isClientSide()) {
             return;
         }
         
@@ -290,10 +291,11 @@ public abstract class LivingEntityMixin {
             return;
         }
         
+        // a copy: an extra tick may add or remove effects of this entity
         //? if >=1.20.5 {
-        for (Map.Entry<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> entry : activeEffects.entrySet()) {
+        for (Map.Entry<net.minecraft.core.Holder<MobEffect>, MobEffectInstance> entry : List.copyOf(activeEffects.entrySet())) {
         //?} else {
-        /*for (Map.Entry<MobEffect, MobEffectInstance> entry : activeEffects.entrySet()) {
+        /*for (Map.Entry<MobEffect, MobEffectInstance> entry : List.copyOf(activeEffects.entrySet())) {
         *///?}
             processEffectEntry(entity, entry, unifier);
         }
@@ -314,17 +316,10 @@ public abstract class LivingEntityMixin {
             return;
         }
         
-        EffectMappingEntry mapping = unifier.getMapping(effectId);
-        if (mapping == null) {
-            return;
+        // the stored effect is the target of a converted effect, so the mappings are found by target as well
+        for (EffectMappingEntry mapping : unifier.getExtraTickMappings(effect, effectId)) {
+            applyExtraEffectTicks(entity, instance, mapping, unifier);
         }
-        
-        String extraTick = mapping.getExtraApplyEffectTick();
-        if (extraTick == null || extraTick.isEmpty()) {
-            return;
-        }
-        
-        applyExtraEffectTicks(entity, instance, mapping, unifier);
     }
     
     @Unique
@@ -359,7 +354,7 @@ public abstract class LivingEntityMixin {
     @Unique
     private void applyExtraEffectTickWildcard(LivingEntity entity, MobEffectInstance instance, String pattern, EffectUnifier unifier) {
         if (pattern.equals("*:*")) {
-            EffectificationLogger.warn("Dangerous extraApplyEffectTick pattern rejected: *:* (would call all effects)");
+            EffectificationLogger.warnOnce("extra *:*", "extraApplyEffectTick '*:*' is ignored: it would tick every effect");
             return;
         }
         
@@ -368,7 +363,8 @@ public abstract class LivingEntityMixin {
             char firstChar = pattern.charAt(0);
             if (firstChar != '*' && pattern.charAt(colonIndex + 1) == '*' && 
                 (colonIndex + 2 >= pattern.length() || pattern.charAt(colonIndex + 2) != '*')) {
-                EffectificationLogger.warn("Dangerous extraApplyEffectTick pattern rejected: " + pattern + " (would call all effects from mod)");
+                EffectificationLogger.warnOnce("extra " + pattern, "extraApplyEffectTick '" + pattern
+                    + "' is ignored: it would tick every effect of that mod; name the effects instead");
                 return;
             }
         }

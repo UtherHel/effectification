@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
@@ -23,15 +24,23 @@ public class EffectUnifier {
     private final Map<String, Boolean> discardCache;
     private final Map<String, List<MobEffect>> extraEffectCache;
 
+    /** Every mapping, static first, in config order. */
+    private final List<EffectMappingEntry> allMappings;
+    /** Stored effect id -> the mappings whose extraApplyEffectTick runs while it is active. */
+    private final Map<String, List<EffectMappingEntry>> extraTickCache;
+
     public EffectUnifier(EffectificationConfig config) {
         this.staticSourceToMapping = new HashMap<>();
         this.staticWildcardMappings = new ArrayList<>();
         this.dynamicSourceToMapping = new HashMap<>();
         this.dynamicWildcardMappings = new ArrayList<>();
-        this.wildcardMatchCache = new HashMap<>();
+        // the server thread and the client's render thread read these at the same time in single player
+        this.wildcardMatchCache = new ConcurrentHashMap<>();
         this.discardPatterns = new ArrayList<>();
-        this.discardCache = new HashMap<>();
-        this.extraEffectCache = new HashMap<>();
+        this.discardCache = new ConcurrentHashMap<>();
+        this.extraEffectCache = new ConcurrentHashMap<>();
+        this.allMappings = new ArrayList<>();
+        this.extraTickCache = new ConcurrentHashMap<>();
 
         for (EffectMappingEntry mapping : config.getStaticMappings()) {
             if (mapping.isWildcard()) {
@@ -40,6 +49,7 @@ public class EffectUnifier {
                 staticSourceToMapping.put(mapping.getSourceEffect(), mapping);
             }
             addDiscardPatterns(mapping);
+            allMappings.add(mapping);
         }
         
         for (EffectMappingEntry mapping : config.getDynamicMappings()) {
@@ -49,6 +59,7 @@ public class EffectUnifier {
                 dynamicSourceToMapping.put(mapping.getSourceEffect(), mapping);
             }
             addDiscardPatterns(mapping);
+            allMappings.add(mapping);
         }
         
         EffectificationLogger.info("Loaded " + config.getStaticMappings().size() + " static mappings");
@@ -67,6 +78,35 @@ public class EffectUnifier {
     
     public List<EffectMappingEntry> getStaticWildcardMappings() {
         return new ArrayList<>(staticWildcardMappings);
+    }
+
+    /**
+     * The mappings whose extraApplyEffectTick runs while {@code effectId} is active on an entity: those that convert
+     * into it (the stored effect is the target) and those that match it without converting it (visual-only, or a
+     * target that is not installed).
+     */
+    public List<EffectMappingEntry> getExtraTickMappings(MobEffect effect, String effectId) {
+        List<EffectMappingEntry> cached = extraTickCache.get(effectId);
+        if (cached != null) {
+            return cached;
+        }
+        List<EffectMappingEntry> found = new ArrayList<>();
+        for (EffectMappingEntry mapping : allMappings) {
+            String extra = mapping.getExtraApplyEffectTick();
+            if (extra == null || extra.isEmpty()) {
+                continue;
+            }
+            if (mapping.getResolvedTargetEffect() == effect || mapping.matches(effectId)) {
+                found.add(mapping);
+            }
+        }
+        List<EffectMappingEntry> result = found.isEmpty() ? List.of() : List.copyOf(found);
+        extraTickCache.put(effectId, result);
+        return result;
+    }
+
+    public List<EffectMappingEntry> getAllMappingsInOrder() {
+        return allMappings;
     }
     
     // Gets all effects matching a wildcard pattern (cached)
@@ -204,10 +244,8 @@ public class EffectUnifier {
         String namespace = patternParts[0];
         String path = patternParts[1];
         
-        if (namespace.equals("*") && path.equals("*")) {
-            return true;
-        }
-        return !namespace.equals("*") && path.equals("*");
+        // *:* would match every effect of every mod; modid:* (all effects of one mod) is allowed
+        return namespace.equals("*") && path.equals("*");
     }
     
     private boolean matchesNamespace(String effectNamespace, String patternNamespace) {
@@ -336,20 +374,16 @@ public class EffectUnifier {
         int converted = (int) Math.round(amplifier * mapping.getAmplifierMultiplier());
         
         if (converted > 255) {
-            EffectificationLogger.warn(
-                "Amplifier overflow for effect " + sourceEffect + 
-                ": " + amplifier + " * " + mapping.getAmplifierMultiplier() + 
-                " = " + converted + " (clamped to 255)"
-            );
+            EffectificationLogger.warnOnce("amplifier>255 " + sourceEffect,
+                "Amplifier of " + sourceEffect + " is " + amplifier + " x " + mapping.getAmplifierMultiplier() +
+                " = " + converted + ", above the maximum: 255 is used instead");
             return 255;
         }
         
         if (converted < 0) {
-            EffectificationLogger.warn(
-                "Negative amplifier for effect " + sourceEffect + 
-                ": " + amplifier + " * " + mapping.getAmplifierMultiplier() + 
-                " = " + converted + " (clamped to 0)"
-            );
+            EffectificationLogger.warnOnce("amplifier<0 " + sourceEffect,
+                "Amplifier of " + sourceEffect + " is " + amplifier + " x " + mapping.getAmplifierMultiplier() +
+                " = " + converted + ", below 0: 0 is used instead");
             return 0;
         }
         

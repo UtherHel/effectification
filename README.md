@@ -11,11 +11,12 @@
 ![Features](https://raw.githubusercontent.com/UtherHel/effectification/main/docs/desc/title-features.webp)
 
 - **One effect for all mods.** A mapping applies the target effect wherever the source would be applied, and anything that looks for the source finds the target: immunities, cures and conditions of both mods see the same effect.
-- **Wildcards with exceptions.** `*:bleeding* !*:bleeding*_immunity` catches the Bleeding of every mod but leaves the immunities alone.
+- **Wildcards with exceptions.** `*:bleeding* !*:bleeding*_immunity` catches the Bleeding of every mod but leaves the immunities alone; `somemod:*` takes every effect of one mod.
 - **Fallbacks.** Name several targets, separated by commas: the first one that is installed is used.
 - **Strength.** `amplifierMultiplier` scales the level on the way (kept within 0-255).
 - **Fine control.** Change only the name and icon (`onlyVisualChange`), stop the source mod's own handlers (`unidirectional`), keep another effect's tick running for its visuals (`extraApplyEffectTick`) or silence an effect's tick (`discardEffectTick`).
-- **Static or dynamic.** Static mappings swap the effect in the registry at startup, cost nothing while playing and need a restart. Dynamic mappings convert at runtime and apply as soon as you save.
+- **Static or dynamic.** Dynamic mappings convert while playing and apply as soon as you save. Static mappings are set at startup and need a restart: an id that no installed mod registers (a mod you removed, an effect a command or data pack still uses) becomes the target effect, so old worlds and commands keep working (on Forge 1.20.1 old worlds only: commands there need the target's own id).
+- **Tells you what is wrong.** At startup and after every change the log lists mappings with a typo in an effect id, and one summary line counts the active ones and those waiting for a mod that is not installed. In the config screen the tooltip of a mapping with a problem says what it is, in red.
 - **An editor in the game,** with every registered effect suggested as you type: Mod Menu on Fabric, the mod list on Forge and NeoForge. The server's mappings are sent to every player.
 - **Ready-made mappings** on Forge and NeoForge for Bleeding, Stun, Freeze, Chill, Immolate, Confusion, Knowledge and Sapped, and for the pairs that overlap in Majrusz's Difficulty, Apothic Attributes, Valoria, Relics, Alex's Caves, Alex's Mobs, Mowzie's Mobs, More RPG Classes, Iron's Spells, Goety and Nether Depths Upgrade. Fabric starts empty.
 
@@ -52,7 +53,9 @@ Every Stun except the resistances and immunities becomes Relics' Stun, or Alex's
 | `extraApplyEffectTick` | empty | effects whose tick also runs while the target is active, for their visuals |
 | `discardEffectTick` | empty | effects whose tick is blocked; patterns allowed |
 
-`staticMappings` need a restart, `dynamicMappings` apply when saved. `debug.logLevel` (`NONE`, `ERRORS`, `WARNINGS`, `ALL`) controls the log. Changing the server's config takes permission level 2.
+`staticMappings` need a restart, `dynamicMappings` apply when saved. A static mapping whose source is a registered effect works like a dynamic one. `*:*` is not allowed as a source: a pattern needs a fixed part.
+
+`debug.logLevel` controls the log: `NONE`, `ERRORS`, `WARNINGS` (the default: also mapping problems, such as an effect id with a typo) or `ALL` (also every conversion, for troubleshooting). Changing the server's config takes permission level 2.
 
 **Same idea, for attributes:** [Attributification](https://modrinth.com/mod/attributification).
 
