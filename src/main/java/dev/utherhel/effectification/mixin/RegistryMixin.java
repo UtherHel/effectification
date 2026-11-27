@@ -41,12 +41,14 @@ public abstract class RegistryMixin<T> {
         
         EffectUnifier unifier = Effectification.getEffectUnifier();
         if (unifier == null) {
-            EffectificationLogger.warn("[Registry] EffectUnifier not initialized, skipping alias injection");
+            // NeoForge freezes the registries once before any mod is set up; the aliases go in at the next freeze
+            EffectificationLogger.info("[Registry] The effect registry froze before the mod was set up; aliases follow at the next freeze");
             return;
         }
         
         int[] counts = processAllMappings(unifier);
         logResults(counts[0], counts[1]);
+        Effectification.onEffectRegistryReady();
     }
     
     private boolean isStatusEffectRegistry() {
@@ -90,9 +92,8 @@ public abstract class RegistryMixin<T> {
     private int[] processSingleMapping(EffectMappingEntry mapping, EffectUnifier unifier) {
         MobEffect targetEffect = mapping.getResolvedTargetEffect();
         if (targetEffect == null) {
-            EffectificationLogger.warn("[Registry] Target effect not found for mapping: " + 
-                mapping.getSourceEffect() + " -> " + mapping.getTargetEffect());
-            return new int[]{0, 1};
+            // reported by MappingCheck once the registry is complete (a typo or a mod that is not installed)
+            return new int[]{0, 0};
         }
         
         String targetId = EffectUtils.getEffectId(targetEffect);
@@ -119,7 +120,15 @@ public abstract class RegistryMixin<T> {
     private int[] processSourcePattern(String sourcePattern, Holder.Reference<T> targetHolder, 
                                        String targetId, EffectUnifier unifier) {
         if (!sourcePattern.contains("*")) {
-            boolean success = injectSingleAlias(sourcePattern, targetHolder);
+            String id = sourcePattern.trim();
+            int bang = id.indexOf('!');
+            if (bang >= 0) id = id.substring(0, bang).trim();
+            if (EffectUtils.getEffectByName(id) != null) {
+                // a registered effect keeps its id; it is converted at runtime, like a dynamic mapping
+                EffectificationLogger.info("[Registry] " + id + " is a registered effect: it is converted at runtime");
+                return new int[]{0, 0};
+            }
+            boolean success = injectSingleAlias(id, targetHolder);
             return new int[]{success ? 1 : 0, success ? 0 : 1};
         }
         
@@ -138,14 +147,8 @@ public abstract class RegistryMixin<T> {
     
     private int injectWildcardAliases(String sourcePattern, Holder.Reference<T> targetHolder, 
                                       String targetId, EffectUnifier unifier) {
-        int count = 0;
-        for (MobEffect effect : unifier.getMatchingEffects(sourcePattern)) {
-            String effectId = EffectUtils.getEffectId(effect);
-            if (effectId != null && !effectId.equals(targetId) && injectSingleAlias(effectId, targetHolder)) {
-                count++;
-            }
-        }
-        return count;
+        // a wildcard only matches registered effects, and those keep their ids: they are converted at runtime
+        return 0;
     }
     
     private boolean injectSingleAlias(String sourceId, Holder.Reference<T> targetHolder) {

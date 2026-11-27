@@ -8,13 +8,14 @@ default_targets = ["1.21.1-fabric", "1.21.1-neoforge", "1.20.1-forge", "1.20.6-n
 log_noise = []
 
 # Bugs the scenes found, not fixed yet (reported as "known issue" warnings until then):
-# - static_alias (Forge 1.20.1): a static mapping does not alias the id; /effect give <source id> fails. The alias
-#   goes into MappedRegistry's maps, which Forge's own registry wrapper does not read.
+# - static_alias (Forge 1.20.1): /effect give <source id> fails. The alias is in Forge's registry (static_alias_lookup
+#   passes, saved effects load as the target), but commands look ids up in the holders of Forge's NamespacedWrapper,
+#   which do not follow registry aliases.
 # - server_mappings_synced, visual_only_renamed_on_client (Forge 1.20.1, mp): the server's config never reaches the
 #   client there (the client's file is not overwritten, onSyncClient never runs; Fzzy Config 0.7.7+1.20.1+forge), so
 #   the client keeps its own mappings. On 1.21.1 the same scenes pass. Cause not found yet.
 [known_failures]
-"1.20.1-forge" = ["effects/static_alias", "client/server_mappings_synced", "client/visual_only_renamed_on_client"]
+"1.20.1-forge" = ["effects/static_alias$", "client/server_mappings_synced", "client/visual_only_renamed_on_client"]
 
 # runtime mods besides the mod jar (published production jars): the mandatory dependencies of fabric.mod.json and
 # (neoforge.)mods.toml, and Fzzy Config's Kotlin runtime (the newest one for the target's loader and version)
@@ -44,6 +45,15 @@ logLevel = "WARNINGS"
 
 [[staticMappings]]
 sourceEffect = "modtest:ghost_effect"
+targetEffect = "minecraft:glowing"
+amplifierMultiplier = 1.0
+onlyVisualChange = false
+unidirectional = false
+extraApplyEffectTick = ""
+discardEffectTick = ""
+
+[[staticMappings]]
+sourceEffect = "minecraft:bad_omen"
 targetEffect = "minecraft:glowing"
 amplifierMultiplier = 1.0
 onlyVisualChange = false
@@ -115,6 +125,15 @@ extraApplyEffectTick = ""
 discardEffectTick = ""
 
 [[dynamicMappings]]
+sourceEffect = "minecraft:invisibility"
+targetEffect = "minecraft:water_breathing"
+amplifierMultiplier = 1.0
+onlyVisualChange = false
+unidirectional = false
+extraApplyEffectTick = "minecraft:poison"
+discardEffectTick = ""
+
+[[dynamicMappings]]
 sourceEffect = "minecraft:night_vision"
 targetEffect = "minecraft:conduit_power"
 amplifierMultiplier = 3.0
@@ -137,6 +156,15 @@ logLevel = "WARNINGS"
 
 [[staticMappings]]
 sourceEffect = "modtest:ghost_effect"
+targetEffect = "minecraft:glowing"
+amplifierMultiplier = 1.0
+onlyVisualChange = false
+unidirectional = false
+extraApplyEffectTick = ""
+discardEffectTick = ""
+
+[[staticMappings]]
+sourceEffect = "minecraft:bad_omen"
 targetEffect = "minecraft:glowing"
 amplifierMultiplier = 1.0
 onlyVisualChange = false

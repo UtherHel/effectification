@@ -17,11 +17,11 @@ import java.util.List;
 @Translation(prefix = "effectification.config")
 public class EffectificationConfig extends Config {
     
-    @Comment("Static mappings - registry aliasing at startup (requires restart)")
+    @Comment("Applied at startup (restart after a change): an id no installed mod registers is given to the target effect; a registered source is converted while playing")
     @RequiresAction(action = Action.RESTART)
     public ValidatedList<EffectMappingEntry> staticMappings;
     
-    @Comment("Dynamic mappings - runtime effect conversion (reloadable)")
+    @Comment("Converted while playing; changes apply when saved")
     public ValidatedList<EffectMappingEntry> dynamicMappings;
     
     public DebugSection debug = new DebugSection();
