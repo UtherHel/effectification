@@ -47,6 +47,6 @@ replay_*.log
 # Icons, logos and old release jars (local only)
 /branding/
 
-# dev/modtest: run work dirs and Python caches
-/dev/.work/
+# dev/: local test tooling, not published
+/dev/
 __pycache__/
